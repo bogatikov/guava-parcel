@@ -1,0 +1,37 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: guava-parcel-gateway
+  cloud:
+    consul:
+      host: ${CONSUL_SERVER_URL:localhost}
+      port: 8500
+      discovery:
+        prefer-ip-address: true
+        health-check-interval: 15s
+        health-check-timeout: 60s
+        health-check-critical-timeout: 3m
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+    gateway:
+      routes:
+        - id: guava-parcel
+          uri: lb://guava-parcel-gateway
+          predicates:
+            - Path=/guava-parcel-gateway/api/**
+          filters:
+            - RewritePath=/meeting-core/api/(?<segment>.*), /api/$\{segment}
+management:
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  endpoint:
+    prometheus:
+      enabled: true
+    metrics:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
