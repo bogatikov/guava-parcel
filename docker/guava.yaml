@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  guava-postgresql:
+    image: 'postgres:12.1'
+    environment:
+      - POSTGRES_USER=guava
+      - POSTGRES_PASSWORD=guava
+    ports:
+      - '5432:5432'
