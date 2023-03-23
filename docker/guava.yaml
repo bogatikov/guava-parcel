@@ -8,3 +8,7 @@ services:
       - POSTGRES_PASSWORD=guava
     ports:
       - '5432:5432'
+  consul:
+    image: 'consul:latest'
+    ports:
+      - "8500:8500"
