@@ -6,7 +6,7 @@ import com.guava.guavaparcel.dto.form.ChangeOrderStatusForm;
 import com.guava.guavaparcel.dto.form.CreateOrderForm;
 import com.guava.guavaparcel.dto.view.OrderShortView;
 import com.guava.guavaparcel.dto.view.OrderView;
-import com.guava.guavaparcel.dto.view.SetCourierForm;
+import com.guava.guavaparcel.dto.form.SetCourierForm;
 import com.guava.guavaparcel.model.Order;
 import com.guava.guavaparcel.model.Page;
 import org.springframework.lang.NonNull;

@@ -3,6 +3,16 @@ spring:
     banner-mode: off
   application:
     name: guava-parcel-delivery
+  cloud:
+    consul:
+      host: "localhost"
+      port: 8500
+      discovery:
+        prefer-ip-address: true
+        health-check-interval: 15s
+        health-check-timeout: 60s
+        health-check-critical-timeout: 3m
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
   r2dbc:
     url: "r2dbc:postgresql://localhost:5432/guava"
     username: "guava"

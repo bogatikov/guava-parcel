@@ -32,6 +32,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    // ===
+    // Cloud
+    implementation("org.springframework.cloud:spring-cloud-starter-consul-discovery")
     // ===
     // Liquibase
     implementation("org.liquibase:liquibase-core")
@@ -53,6 +57,9 @@ dependencies {
     testImplementation("org.testcontainers:r2dbc:${testcontainersVersion}")
     testImplementation("org.testcontainers:postgresql:${testcontainersVersion}")
     testImplementation("io.projectreactor:reactor-test")
+    // ===
+    // Monitoring
+    implementation("io.micrometer:micrometer-registry-prometheus")
     // ===
 }
 
