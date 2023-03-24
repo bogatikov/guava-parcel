@@ -31,8 +31,8 @@ public class UserRepositoryIT extends BaseIT {
         var user = new User(
                 UUID.randomUUID(),
                 email,
-                "First",
-                "Name",
+                "John",
+                "Doe",
                 "password",
                 User.UserType.USER,
                 Instant.now(),

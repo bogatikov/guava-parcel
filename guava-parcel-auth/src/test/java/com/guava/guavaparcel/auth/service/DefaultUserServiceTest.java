@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.modelmapper.ModelMapper;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -33,7 +34,7 @@ class DefaultUserServiceTest {
     void setUp() {
         userRepository = mock(UserRepository.class);
         tokenService = mock(TokenService.class);
-        userService = new DefaultUserService(userRepository, tokenService);
+        userService = new DefaultUserService(userRepository, tokenService, new ModelMapper());
     }
 
     @Test
