@@ -17,8 +17,8 @@ import java.util.List;
 @Slf4j
 public class JwtSecurityAuthenticationManager implements ReactiveAuthenticationManager {
 
-    private final JWTVerifier JWTVerifier = JWT.require(Algorithm.HMAC512("secret-here"))
-            .withIssuer("guava-delivery-auth")
+    private final JWTVerifier JWTVerifier = JWT.require(Algorithm.HMAC512("secret"))
+            .withIssuer("guava-parcel")
             .build();
 
     @Override

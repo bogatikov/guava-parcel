@@ -1,9 +1,11 @@
-package com.guava.guavaparcel.auth.rest;
+package com.guava.guavaparcel.auth.controller;
 
+import com.guava.guavaparcel.auth.dto.form.CreateUserForm;
 import com.guava.guavaparcel.auth.dto.form.SignInForm;
 import com.guava.guavaparcel.auth.dto.form.SignUpForm;
 import com.guava.guavaparcel.auth.dto.view.SignInView;
 import com.guava.guavaparcel.auth.dto.view.SignUpView;
+import com.guava.guavaparcel.auth.dto.view.UserView;
 import com.guava.guavaparcel.auth.service.api.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,5 +30,11 @@ public class UserController {
     @PostMapping("sign-up")
     public Mono<SignUpView> signUp(@Valid @RequestBody SignUpForm signUpForm) {
         return userService.signUp(signUpForm);
+    }
+
+    @PostMapping("create")
+    //TODO @PreAuthorize("hasAuthority('ADMIN')")
+    public Mono<UserView> createUser(@Valid @RequestBody CreateUserForm createUserForm) {
+        return userService.createUser(createUserForm);
     }
 }

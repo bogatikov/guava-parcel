@@ -1,4 +1,4 @@
-package com.guava.guavaparcel.auth.rest;
+package com.guava.guavaparcel.auth.controller;
 
 import com.guava.guavaparcel.auth.dto.form.RefreshTokenForm;
 import com.guava.guavaparcel.auth.dto.view.TokenView;

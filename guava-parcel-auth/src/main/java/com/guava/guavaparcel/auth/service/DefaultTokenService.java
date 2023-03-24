@@ -39,7 +39,7 @@ public class DefaultTokenService implements TokenService {
 
     @Override
     public Mono<TokenView> issueRefreshToken(User user) {
-        String token = RandomStringUtils.random(REFRESH_TOKEN_LENGTH);
+        String token = RandomStringUtils.randomAlphabetic(REFRESH_TOKEN_LENGTH);
         //todo save refresh
         return Mono.just(new TokenView(token));
     }

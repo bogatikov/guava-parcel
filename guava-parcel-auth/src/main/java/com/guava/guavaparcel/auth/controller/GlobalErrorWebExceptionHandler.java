@@ -1,4 +1,4 @@
-package com.guava.guavaparcel.auth.rest;
+package com.guava.guavaparcel.auth.controller;
 
 import com.guava.guavaparcel.auth.error.EntityNotFound;
 import lombok.extern.slf4j.Slf4j;

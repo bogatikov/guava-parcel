@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .authorizeExchange()
                 .pathMatchers("/actuator/**").permitAll()
                 .pathMatchers(HttpMethod.POST, "/sign-in").permitAll()
-                .anyExchange().authenticated()
+                .anyExchange().hasAuthority("ADMIN")
                 .and()
                 .build();
     }
