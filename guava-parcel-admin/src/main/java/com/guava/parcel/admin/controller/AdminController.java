@@ -2,9 +2,11 @@ package com.guava.parcel.admin.controller;
 
 import com.guava.parcel.admin.dto.form.ChangeOrderStatusForm;
 import com.guava.parcel.admin.dto.form.CreateCourierForm;
+import com.guava.parcel.admin.dto.form.SignInForm;
 import com.guava.parcel.admin.dto.view.CreateCourierView;
 import com.guava.parcel.admin.dto.view.OrderShortView;
 import com.guava.parcel.admin.dto.view.OrderView;
+import com.guava.parcel.admin.dto.view.SignInView;
 import com.guava.parcel.admin.model.Page;
 import com.guava.parcel.admin.model.Status;
 import com.guava.parcel.admin.service.api.AdminService;
@@ -53,5 +55,10 @@ public class AdminController {
     @PostMapping("courier/create")
     public Mono<CreateCourierView> createCourier(@Valid @RequestBody CreateCourierForm createCourierForm) {
         return adminService.createCourier(createCourierForm);
+    }
+
+    @PostMapping("sign-in")
+    public Mono<SignInView> signIn(@Valid @RequestBody SignInForm signInForm) {
+        return adminService.signIn(signInForm);
     }
 }

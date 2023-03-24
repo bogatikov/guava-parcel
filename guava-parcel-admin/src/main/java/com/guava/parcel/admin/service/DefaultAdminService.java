@@ -10,9 +10,11 @@ import com.guava.parcel.admin.dto.view.CreateCourierView;
 import com.guava.parcel.admin.dto.view.OrderShortView;
 import com.guava.parcel.admin.dto.view.OrderView;
 import com.guava.parcel.admin.dto.view.SignInView;
+import com.guava.parcel.admin.ext.AuthApi;
 import com.guava.parcel.admin.ext.ParcelDeliveryApi;
 import com.guava.parcel.admin.ext.request.ChangeOrderStatusRequest;
 import com.guava.parcel.admin.ext.request.SetCourierRequest;
+import com.guava.parcel.admin.ext.request.SignInRequest;
 import com.guava.parcel.admin.ext.response.OrderResponse;
 import com.guava.parcel.admin.ext.response.OrderShortResponse;
 import com.guava.parcel.admin.model.Page;
@@ -33,11 +35,13 @@ import java.util.stream.Collectors;
 public class DefaultAdminService implements AdminService {
 
     private final ParcelDeliveryApi parcelDeliveryApi;
+    private final AuthApi authApi;
     private final ModelMapper mapper;
 
     @Override
     public Mono<SignInView> signIn(SignInForm signInForm) {
-        return null;
+        return authApi.signIn(new SignInRequest(signInForm.email(), signInForm.password()))
+                .map(signInResponse -> new SignInView(signInResponse.accessToken(), signInResponse.refreshToken()));
     }
 
     @Override
