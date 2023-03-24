@@ -3,6 +3,16 @@ spring:
     banner-mode: off
   application:
     name: guava-parcel-auth
+  cloud:
+    consul:
+      host: "localhost"
+      port: 8500
+      discovery:
+        prefer-ip-address: true
+        health-check-interval: 15s
+        health-check-timeout: 60s
+        health-check-critical-timeout: 3m
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
   r2dbc:
     url: "r2dbc:postgresql://localhost:5432/guava"
     username: "guava"
@@ -18,3 +28,5 @@ spring:
     database-change-log-lock-table: "guava_auth_change_log_lock"
     liquibase-schema: public
     default-schema: "guava_auth"
+server:
+  port: 0

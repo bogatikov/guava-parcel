@@ -1,6 +1,7 @@
 package com.guava.guavaparcel.auth.rest;
 
 import com.guava.guavaparcel.auth.error.EntityNotFound;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
@@ -24,6 +25,7 @@ import java.util.Map;
 
 @Component
 @Order(-2)
+@Slf4j
 public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHandler {
 
     private static final String ERROR_MESSAGE_KEY = "errorMessage";
@@ -58,6 +60,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         Map<String, Object> response = new HashMap<>();
         response.put(ERROR_MESSAGE_KEY, message);
 
+        log.error("Error occurred", error);
         return ServerResponse.status(status)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(response));
