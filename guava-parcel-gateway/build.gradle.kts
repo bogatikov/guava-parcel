@@ -15,9 +15,20 @@ repositories {
 extra["springCloudVersion"] = "2022.0.1"
 
 dependencies {
+    // Spring
     implementation("org.springframework.cloud:spring-cloud-starter-gateway")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    // ===
+    // Cloud
+    implementation("org.springframework.cloud:spring-cloud-starter-consul-discovery")
+    // ===
+    // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    // ===
+    // Monitoring
+    implementation("io.micrometer:micrometer-registry-prometheus")
+    // ===
 }
 
 dependencyManagement {

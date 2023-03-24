@@ -1,3 +1,5 @@
+server:
+  port: 0
 spring:
   main:
     banner-mode: off
@@ -28,5 +30,3 @@ spring:
     database-change-log-lock-table: "guava_delivery_change_log_lock"
     liquibase-schema: public
     default-schema: "guava_delivery"
-server:
-  port: 0

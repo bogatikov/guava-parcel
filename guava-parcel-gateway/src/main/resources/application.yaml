@@ -15,17 +15,25 @@ spring:
         instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
     gateway:
       routes:
-        - id: guava-parcel
-          uri: lb://guava-parcel-gateway
+        - id: guava-parcel-admin
+          uri: lb://guava-parcel-admin
           predicates:
-            - Path=/guava-parcel-gateway/api/**
+            - Path=/guava-admin/**
           filters:
-            - RewritePath=/meeting-core/api/(?<segment>.*), /api/$\{segment}
+            - RewritePath=/guava-admin/(?<segment>.*), /$\{segment}
+        - id: guava-parcel-courier
+          uri: lb://guava-parcel-courier
+          predicates:
+            - Path=/guava-courier/**
+          filters:
+            - RewritePath=/guava-parcel-courier/(?<segment>.*), /$\{segment}
+        - id: guava-parcel-user
+          uri: lb://guava-parcel-courier
+          predicates:
+            - Path=/guava-courier/**
+          filters:
+            - RewritePath=/guava-parcel-courier/(?<segment>.*), /$\{segment}
 management:
-  metrics:
-    export:
-      prometheus:
-        enabled: true
   endpoint:
     prometheus:
       enabled: true
@@ -35,3 +43,7 @@ management:
     web:
       exposure:
         include: '*'
+  prometheus:
+    metrics:
+      export:
+        enabled: true

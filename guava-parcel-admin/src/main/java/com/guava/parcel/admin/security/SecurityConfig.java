@@ -34,6 +34,7 @@ public class SecurityConfig {
                 .authenticationManager(reactiveAuthenticationManager)
                 .securityContextRepository(securityContextRepository)
                 .authorizeExchange()
+                .pathMatchers("/actuator/**").permitAll()
                 .pathMatchers(HttpMethod.POST, "/sign-in").permitAll()
                 .anyExchange().authenticated()
                 .and()

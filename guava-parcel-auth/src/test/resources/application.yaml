@@ -1,3 +1,6 @@
 spring:
   liquibase:
     change-log: "classpath:db/changelog/master.yaml"
+  cloud:
+    consul:
+      enabled: false

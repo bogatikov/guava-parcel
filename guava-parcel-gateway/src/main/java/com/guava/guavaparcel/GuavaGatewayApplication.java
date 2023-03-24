@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class GuavaParcelApplication {
+public class GuavaGatewayApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(GuavaParcelApplication.class, args);
+        SpringApplication.run(GuavaGatewayApplication.class, args);
     }
 
 }
