@@ -31,6 +31,7 @@ buildscript {
 
 extra["springCloudVersion"] = "2022.0.1"
 val testcontainersVersion = "1.17.3"
+val modelMapperVersion = "3.1.1"
 
 dependencies {
     // JWT
@@ -70,6 +71,9 @@ dependencies {
     // ===
     // Monitoring
     implementation("io.micrometer:micrometer-registry-prometheus")
+    // ===
+    // Mapper
+    implementation("org.modelmapper:modelmapper:${modelMapperVersion}")
     // ===
 }
 
