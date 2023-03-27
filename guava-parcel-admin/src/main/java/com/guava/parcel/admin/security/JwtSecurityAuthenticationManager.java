@@ -17,6 +17,10 @@ import java.util.List;
 @Slf4j
 public class JwtSecurityAuthenticationManager implements ReactiveAuthenticationManager {
 
+    private static final String USER_ID_CLAIM = "userId";
+    private static final String EMAIL_CLAIM = "userId";
+    private static final String USER_TYPE_CLAIM = "userId";
+
     private final JWTVerifier JWTVerifier = JWT.require(Algorithm.HMAC512("secret"))
             .withIssuer("guava-parcel")
             .build();
@@ -26,9 +30,9 @@ public class JwtSecurityAuthenticationManager implements ReactiveAuthenticationM
         try {
             var token = (String) authentication.getCredentials();
             var decoded = JWTVerifier.verify(token);
-            var userId = decoded.getClaim("userId").asString();
-            var email = decoded.getClaim("email").asString();
-            var userType = decoded.getClaim("userType").asString();
+            var userId = decoded.getClaim(USER_ID_CLAIM).asString();
+            var email = decoded.getClaim(EMAIL_CLAIM).asString();
+            var userType = decoded.getClaim(USER_TYPE_CLAIM).asString();
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                     userId,
                     token,

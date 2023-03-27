@@ -17,6 +17,11 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private static final String ACTUATOR_PATH_PATTERN = "/actuator/**";
+    private static final String SIGN_IN_PATH_PATTERN = "/sign-in";
+    private static final String ADMIN_AUTHORITY = "ADMIN";
+
+
     private final ReactiveAuthenticationManager reactiveAuthenticationManager;
     private final ServerSecurityContextRepository securityContextRepository;
 
@@ -34,9 +39,9 @@ public class SecurityConfig {
                 .authenticationManager(reactiveAuthenticationManager)
                 .securityContextRepository(securityContextRepository)
                 .authorizeExchange()
-                .pathMatchers("/actuator/**").permitAll()
-                .pathMatchers(HttpMethod.POST, "/sign-in").permitAll()
-                .anyExchange().hasAuthority("ADMIN")
+                .pathMatchers(ACTUATOR_PATH_PATTERN).permitAll()
+                .pathMatchers(HttpMethod.POST, SIGN_IN_PATH_PATTERN).permitAll()
+                .anyExchange().hasAuthority(ADMIN_AUTHORITY)
                 .and()
                 .build();
     }
