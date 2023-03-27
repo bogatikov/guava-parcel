@@ -10,22 +10,25 @@ import com.guava.guavaparcel.dto.view.OrderView;
 import com.guava.guavaparcel.error.EntityNotFound;
 import com.guava.guavaparcel.model.Order;
 import com.guava.guavaparcel.model.Page;
+import com.guava.guavaparcel.model.filter.OrderFilter;
+import com.guava.guavaparcel.repository.CustomOrderRepository;
 import com.guava.guavaparcel.repository.OrderRepository;
 import com.guava.guavaparcel.service.api.OrderService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DefaultOrderService implements OrderService {
 
     private final OrderRepository orderRepository;
+    private final CustomOrderRepository customOrderRepository;
 
     @Override
     public Mono<OrderView> createOrder(CreateOrderForm createOrderForm) {
@@ -65,16 +68,15 @@ public class DefaultOrderService implements OrderService {
     }
 
     @Override
-    public Mono<Page<OrderShortView>> getOrders(@NonNull UUID userId, @NonNull Integer page, @NonNull Integer size) {
-        return orderRepository.findAllByUserId(userId, PageRequest.of(page, size))
-                .map(this::mapOrderToOrderShortView)
-                .collectList()
-                .zipWith(orderRepository.countByUserId(userId))
-                .map(ordersToCount -> new Page<>(
-                                ordersToCount.getT1(),
-                                page,
-                                ordersToCount.getT2(),
-                                ordersToCount.getT1().size()
+    public Mono<Page<OrderShortView>> getOrders(OrderFilter orderFilter, @NonNull Integer page, @NonNull Integer size) {
+        return customOrderRepository.getOrdersByFilter(orderFilter, page, size)
+                .map(orderPage -> new Page<>(
+                                orderPage.getContent().stream()
+                                        .map(this::mapOrderToOrderShortView)
+                                        .collect(Collectors.toList()),
+                                orderPage.getCurrentPage(),
+                                orderPage.getTotalElements(),
+                                orderPage.getNumberOfElements()
                         )
                 );
     }
@@ -103,16 +105,6 @@ public class DefaultOrderService implements OrderService {
                         order.getCreatedAt())
                 );
     }
-
-    @Override
-    public Mono<Page<OrderShortView>> getOrders(Order.Status status, @NonNull Integer page, @NonNull Integer size) {
-        return orderRepository.findAllByStatus(status, PageRequest.of(page, size))
-                .map(this::mapOrderToOrderShortView)
-                .collectList()
-                .zipWith(orderRepository.countByStatus(status))
-                .map(ordersToCount -> new Page<>(ordersToCount.getT1(), page, ordersToCount.getT2(), ordersToCount.getT1().size()));
-    }
-
 
     @Override
     public Mono<OrderView> setCourier(SetCourierForm setCourierForm) {

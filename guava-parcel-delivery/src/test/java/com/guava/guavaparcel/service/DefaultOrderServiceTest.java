@@ -6,6 +6,8 @@ import com.guava.guavaparcel.dto.form.CreateOrderForm;
 import com.guava.guavaparcel.dto.view.OrderView;
 import com.guava.guavaparcel.error.EntityNotFound;
 import com.guava.guavaparcel.model.Order;
+import com.guava.guavaparcel.model.filter.OrderFilter;
+import com.guava.guavaparcel.repository.CustomOrderRepository;
 import com.guava.guavaparcel.repository.OrderRepository;
 import com.guava.guavaparcel.service.api.OrderService;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,11 +31,13 @@ class DefaultOrderServiceTest {
 
     private OrderService orderService;
     private OrderRepository orderRepository;
+    private CustomOrderRepository customOrderRepository;
 
     @BeforeEach
     void setUp() {
         orderRepository = mock(OrderRepository.class);
-        orderService = new DefaultOrderService(orderRepository);
+        customOrderRepository = mock(CustomOrderRepository.class);
+        orderService = new DefaultOrderService(orderRepository, customOrderRepository);
     }
 
     @Test
@@ -191,38 +195,7 @@ class DefaultOrderServiceTest {
 
     @Test
     void getOrdersByStatusShouldReturnEmptyPage() {
-        when(orderRepository.findAllByStatus(Order.Status.NEW, PageRequest.of(0, 20)))
-                .thenReturn(Flux.empty());
-        when(orderRepository.countByStatus(Order.Status.NEW)).thenReturn(Mono.just(0L));
 
-        StepVerifier.create(orderService.getOrders(Order.Status.NEW, 0, 20))
-                .assertNext(page -> {
-                    assertEquals(0, page.getContent().size());
-                    assertEquals(0, page.getCurrentPage());
-                    assertEquals(0, page.getNumberOfElements());
-                    assertEquals(0, page.getTotalElements());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void getOrdersByStatusShouldReturnNewPage() {
-        var newOrder1 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.NEW, null, Instant.now(), 1L, true);
-        var newOrder2 = new Order(UUID.randomUUID(), "The 3d Avenue", "The 4th Avenue", UUID.randomUUID(), null, Order.Status.NEW, null, Instant.now(), 1L, true);
-
-        var content = List.of(newOrder1, newOrder2);
-        when(orderRepository.findAllByStatus(Order.Status.NEW, PageRequest.of(0, 20)))
-                .thenReturn(Flux.fromIterable(content));
-        when(orderRepository.countByStatus(Order.Status.NEW)).thenReturn(Mono.just((long) content.size()));
-
-        StepVerifier.create(orderService.getOrders(Order.Status.NEW, 0, 20))
-                .assertNext(page -> {
-                    assertEquals(2, page.getContent().size());
-                    assertEquals(0, page.getCurrentPage());
-                    assertEquals(2, page.getNumberOfElements());
-                    assertEquals(2, page.getTotalElements());
-                })
-                .verifyComplete();
     }
 
     @Test

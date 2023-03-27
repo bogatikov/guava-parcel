@@ -1,5 +1,6 @@
 package com.guava.guavaparcel.controller;
 
+import com.guava.guavaparcel.model.filter.OrderFilter;
 import com.guava.guavaparcel.dto.view.OrderShortView;
 import com.guava.guavaparcel.dto.view.OrderView;
 import com.guava.guavaparcel.model.Order;
@@ -29,11 +30,13 @@ public class OrderController {
     @GetMapping("list")
     //todo add validation
     public Mono<Page<OrderShortView>> getOrders(
-            @RequestParam(value = "status", required = false) Order.Status status,
+            @RequestParam(name = "userId", required = false) UUID userId,
+            @RequestParam(name = "courierId", required = false) UUID courierId,
+            @RequestParam(name = "status", required = false) Order.Status status,
             @RequestParam("page") Integer page,
             @RequestParam("size") Integer size
     ) {
-        return orderService.getOrders(status, page, size);
+        return orderService.getOrders(new OrderFilter(userId, courierId, status), page, size);
     }
 
     @GetMapping("{orderId}")

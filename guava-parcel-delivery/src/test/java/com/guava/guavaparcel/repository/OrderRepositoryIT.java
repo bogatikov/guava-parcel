@@ -2,6 +2,7 @@ package com.guava.guavaparcel.repository;
 
 import com.guava.guavaparcel.BaseIT;
 import com.guava.guavaparcel.model.Order;
+import com.guava.guavaparcel.model.filter.OrderFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +14,40 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @SpringBootTest
 class OrderRepositoryIT extends BaseIT {
 
+    class TestOrders {
+        static final Order newOrder1 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.NEW, null, Instant.now(), 1L, true);
+        static final Order newOrder2 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.NEW, null, Instant.now(), 1L, true);
+
+        static final Order waitingOrder1 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.WAITING_FOR_COURIER, null, Instant.now(), 1L, true);
+        static final Order waitingOrder2 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.WAITING_FOR_COURIER, null, Instant.now(), 1L, true);
+
+        static final Order deliveringOrder1 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.DELIVERING, null, Instant.now(), 1L, true);
+        static final Order deliveringOrder2 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.DELIVERING, null, Instant.now(), 1L, true);
+        static final Order deliveringOrder3 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.DELIVERING, null, Instant.now(), 1L, true);
+
+        static final Order canceledOrder1 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.CANCELED, null, Instant.now(), 1L, true);
+        static final Order canceledOrder2 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.CANCELED, null, Instant.now(), 1L, true);
+        static final Order canceledOrder3 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.CANCELED, null, Instant.now(), 1L, true);
+        static final Order canceledOrder4 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.CANCELED, null, Instant.now(), 1L, true);
+
+        static final Order finishedOrder1 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.FINISHED, null, Instant.now(), 1L, true);
+        static final Order finishedOrder2 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.FINISHED, null, Instant.now(), 1L, true);
+        static final Order finishedOrder3 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.FINISHED, null, Instant.now(), 1L, true);
+        static final Order finishedOrder4 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.FINISHED, null, Instant.now(), 1L, true);
+        static final Order finishedOrder5 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.FINISHED, null, Instant.now(), 1L, true);
+    }
+
     @Autowired
     OrderRepository orderRepository;
+
+    @Autowired
+    CustomOrderRepository customOrderRepository;
 
     @BeforeEach
     void setUp() {
@@ -102,78 +132,65 @@ class OrderRepositoryIT extends BaseIT {
     }
 
     @Test
-    void countByStatusShouldReturnZeroWhenThereIsNoOrdersWithRequestedStatus() {
-        StepVerifier.create(orderRepository.countByStatus(Order.Status.NEW))
-                .expectNext(0L)
-                .verifyComplete();
-        StepVerifier.create(orderRepository.countByStatus(Order.Status.WAITING_FOR_COURIER))
-                .expectNext(0L)
-                .verifyComplete();
-        StepVerifier.create(orderRepository.countByStatus(Order.Status.DELIVERING))
-                .expectNext(0L)
-                .verifyComplete();
-        StepVerifier.create(orderRepository.countByStatus(Order.Status.CANCELED))
-                .expectNext(0L)
-                .verifyComplete();
-        StepVerifier.create(orderRepository.countByStatus(Order.Status.FINISHED))
-                .expectNext(0L)
+    public void orderFilterShouldReturnEmptyPage() {
+        OrderFilter orderFilter = new OrderFilter(null, null, Order.Status.NEW);
+
+        StepVerifier.create(customOrderRepository.getOrdersByFilter(orderFilter, 0, 20))
+                .assertNext(page -> {
+                    assertEquals(0, page.getContent().size());
+                    assertEquals(0, page.getCurrentPage());
+                    assertEquals(0, page.getNumberOfElements());
+                    assertEquals(0, page.getTotalElements());
+                })
                 .verifyComplete();
     }
 
     @Test
-    void countByStatusShouldReturnCountOfSavedOrders() {
-        var newOrder = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.NEW, null, Instant.now(), 1L, true);
+    void getOrdersByStatusShouldReturnPage() {
+        var content = List.of(TestOrders.newOrder1, TestOrders.newOrder2, TestOrders.finishedOrder1);
+        orderRepository.saveAll(content).blockLast();
 
-        var waitingOrder1 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.WAITING_FOR_COURIER, null, Instant.now(), 1L, true);
-        var waitingOrder2 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.WAITING_FOR_COURIER, null, Instant.now(), 1L, true);
-
-        var deliveringOrder1 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.DELIVERING, null, Instant.now(), 1L, true);
-        var deliveringOrder2 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.DELIVERING, null, Instant.now(), 1L, true);
-        var deliveringOrder3 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.DELIVERING, null, Instant.now(), 1L, true);
-
-        var canceledOrder1 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.CANCELED, null, Instant.now(), 1L, true);
-        var canceledOrder2 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.CANCELED, null, Instant.now(), 1L, true);
-        var canceledOrder3 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.CANCELED, null, Instant.now(), 1L, true);
-        var canceledOrder4 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.CANCELED, null, Instant.now(), 1L, true);
-
-        var finishedOrder1 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.FINISHED, null, Instant.now(), 1L, true);
-        var finishedOrder2 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.FINISHED, null, Instant.now(), 1L, true);
-        var finishedOrder3 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.FINISHED, null, Instant.now(), 1L, true);
-        var finishedOrder4 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.FINISHED, null, Instant.now(), 1L, true);
-        var finishedOrder5 = new Order(UUID.randomUUID(), "The 1d Avenue", "The 2d Avenue", UUID.randomUUID(), null, Order.Status.FINISHED, null, Instant.now(), 1L, true);
-
-        orderRepository.saveAll(List.of(
-                newOrder,
-                waitingOrder1,
-                waitingOrder2,
-                deliveringOrder1,
-                deliveringOrder2,
-                deliveringOrder3,
-                canceledOrder1,
-                canceledOrder2,
-                canceledOrder3,
-                canceledOrder4,
-                finishedOrder1,
-                finishedOrder2,
-                finishedOrder3,
-                finishedOrder4,
-                finishedOrder5
-        )).blockLast();
-
-        StepVerifier.create(orderRepository.countByStatus(Order.Status.NEW))
-                .expectNext(1L)
+        StepVerifier.create(customOrderRepository.getOrdersByFilter(
+                                new OrderFilter(null, null, Order.Status.NEW),
+                                0,
+                                20
+                        )
+                )
+                .assertNext(page -> {
+                    assertAll(page.getContent().stream().map(order -> () -> assertEquals(Order.Status.NEW, order.getStatus())));
+                    assertEquals(2, page.getContent().size());
+                    assertEquals(0, page.getCurrentPage());
+                    assertEquals(2, page.getNumberOfElements());
+                    assertEquals(2, page.getTotalElements());
+                })
                 .verifyComplete();
-        StepVerifier.create(orderRepository.countByStatus(Order.Status.WAITING_FOR_COURIER))
-                .expectNext(2L)
-                .verifyComplete();
-        StepVerifier.create(orderRepository.countByStatus(Order.Status.DELIVERING))
-                .expectNext(3L)
-                .verifyComplete();
-        StepVerifier.create(orderRepository.countByStatus(Order.Status.CANCELED))
-                .expectNext(4L)
-                .verifyComplete();
-        StepVerifier.create(orderRepository.countByStatus(Order.Status.FINISHED))
-                .expectNext(5L)
+    }
+
+    @Test
+    void getOrdersByStatusShouldReturnPageWithPartOfOrders() {
+        var content = List.of(
+                TestOrders.finishedOrder1,
+                TestOrders.finishedOrder2,
+                TestOrders.finishedOrder3,
+                TestOrders.finishedOrder4,
+                TestOrders.finishedOrder5
+        );
+
+        orderRepository.saveAll(content).blockLast();
+
+        StepVerifier.create(customOrderRepository.getOrdersByFilter(
+                                new OrderFilter(null, null, Order.Status.FINISHED),
+                                0,
+                                3
+                        )
+                )
+                .assertNext(page -> {
+                    assertAll(page.getContent().stream().map(order -> () -> assertEquals(Order.Status.FINISHED, order.getStatus())));
+                    assertEquals(3, page.getContent().size());
+                    assertEquals(0, page.getCurrentPage());
+                    assertEquals(3, page.getNumberOfElements());
+                    assertEquals(5, page.getTotalElements());
+                })
                 .verifyComplete();
     }
 }
