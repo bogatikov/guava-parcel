@@ -1,0 +1,44 @@
+server:
+  port: 0
+spring:
+  main:
+    banner-mode: off
+  application:
+    name: "guava-parcel-courier"
+  cloud:
+    consul:
+      host: "localhost"
+      port: 8500
+      discovery:
+        prefer-ip-address: true
+        health-check-interval: 15s
+        health-check-timeout: 60s
+        health-check-critical-timeout: 3m
+        instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+
+management:
+  endpoint:
+    prometheus:
+      enabled: true
+    metrics:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+logging:
+  level:
+    com.guava.parcel.admin.config.FeignClientConfig: TRACE
+
+
+clients:
+  feign-client:
+    read-timeout: 3000
+    write-timeout: 3000
+    connect-timeout: 3000
+    response-timeout: 3000
