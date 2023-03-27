@@ -41,7 +41,6 @@ public class AdminController {
         return adminService.getOrders(status, page, size);
     }
 
-
     @GetMapping("order/{orderId}")
     public Mono<OrderView> getOrder(@Valid @NonNull @PathVariable UUID orderId) {
         return adminService.getOrder(orderId);

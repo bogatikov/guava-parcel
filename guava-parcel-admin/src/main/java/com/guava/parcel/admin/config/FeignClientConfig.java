@@ -14,10 +14,10 @@ import reactivefeign.webclient.WebReactiveOptions;
 import java.time.Clock;
 
 @Configuration
-@ConfigurationProperties("clients.delivery-service")
+@ConfigurationProperties("clients.feign-client")
 @Data
 @Slf4j
-public class DeliveryServiceClientConfig {
+public class FeignClientConfig {
     private int readTimeout;
     private int writeTimeout;
     private int connectTimeout;
@@ -26,7 +26,7 @@ public class DeliveryServiceClientConfig {
 
     @Bean
     public ReactiveLoggerListener loggerListener() {
-        return new DefaultReactiveLogger(Clock.systemUTC(), LoggerFactory.getLogger(DeliveryServiceClientConfig.class.getName()));
+        return new DefaultReactiveLogger(Clock.systemUTC(), LoggerFactory.getLogger(FeignClientConfig.class.getName()));
     }
 
     @Bean

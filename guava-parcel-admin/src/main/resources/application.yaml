@@ -33,29 +33,12 @@ management:
 
 logging:
   level:
-    com.guava.parcel.admin.config.DeliveryServiceClientConfig: TRACE
+    com.guava.parcel.admin.config.FeignClientConfig: TRACE
 
 
 clients:
-  delivery-service:
-    http-client:
-      read-timeout: 3000
-      write-timeout: 3000
-      connect-timeout: 3000
-      response-timeout: 3000
-    retry:
-      max-retry: 3
-      retry-interval: 3000
-    urls:
-      base-url: http://guava-parcel-delivry
-  auth-service:
-    http-client:
-      read-timeout: 3000
-      write-timeout: 3000
-      connect-timeout: 3000
-      response-timeout: 3000
-    retry:
-      max-retry: 3
-      retry-interval: 3000
-    urls:
-      base-url: http://guava-parcel-auth
+  feign-client:
+    read-timeout: 3000
+    write-timeout: 3000
+    connect-timeout: 3000
+    response-timeout: 3000
