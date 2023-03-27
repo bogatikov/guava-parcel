@@ -13,7 +13,7 @@ import java.util.UUID;
 public interface CourierService {
     Mono<SignInView> signIn(SignInForm signInForm);
 
-    Mono<Page<OrderShortView>> getOrders();
+    Mono<Page<OrderShortView>> getOrders(Integer page, Integer size);
 
     Mono<OrderView> changeStatus(ChangeOrderStatusForm changeStatusForm);
 
