@@ -1,6 +1,6 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.0.4"
+    id("org.springframework.boot") version "2.7.10"
     id("io.spring.dependency-management") version "1.1.0"
     id("org.liquibase.gradle") version "2.2.0"
 }
@@ -19,9 +19,11 @@ repositories {
     mavenCentral()
 }
 
-extra["springCloudVersion"] = "2022.0.1"
+extra["springCloudVersion"] = "2021.0.6"
 val feignReactorSpringCloudStarter = "3.2.6"
 val modelMapperVersion = "3.1.1"
+val testcontainersVersion = "1.17.3"
+val wiremockVersion = "2.35.0"
 
 dependencies {
     // JWT
@@ -45,7 +47,12 @@ dependencies {
     // ===
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.testcontainers:testcontainers:${testcontainersVersion}")
+    testImplementation("org.testcontainers:junit-jupiter:${testcontainersVersion}")
+    testImplementation("org.testcontainers:r2dbc:${testcontainersVersion}")
+    testImplementation("org.testcontainers:postgresql:${testcontainersVersion}")
     testImplementation("io.projectreactor:reactor-test")
+    testImplementation("com.github.tomakehurst:wiremock-jre8:$wiremockVersion")
     // ===
     // Monitoring
     implementation("io.micrometer:micrometer-registry-prometheus")

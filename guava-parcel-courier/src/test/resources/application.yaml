@@ -1,0 +1,12 @@
+spring:
+  cloud:
+    consul:
+      enabled: false
+
+clients:
+  auth-client:
+    name: "auth-client"
+    url: "http://localhost:9999/guava-auth"
+  delivery-client:
+    name: "delivery-client"
+    url: "http://localhost:9999/guava-delivery"
