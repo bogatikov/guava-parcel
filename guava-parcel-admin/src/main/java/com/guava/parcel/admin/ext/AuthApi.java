@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import reactivefeign.spring.config.ReactiveFeignClient;
 import reactor.core.publisher.Mono;
 
-@ReactiveFeignClient(name = "guava-parcel-auth")
+@ReactiveFeignClient(name = "${clients.auth-client.name}", url = "${clients.auth-client.url}")
 public interface AuthApi {
 
     @PostMapping("user/sign-in")

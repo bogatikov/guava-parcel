@@ -42,3 +42,9 @@ clients:
     write-timeout: 3000
     connect-timeout: 3000
     response-timeout: 3000
+  auth-client:
+    name: "guava-parcel-auth"
+    url: ""
+  delivery-client:
+    name: "guava-parcel-delivery"
+    url: ""
