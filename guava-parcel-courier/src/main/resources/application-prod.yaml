@@ -48,3 +48,6 @@ clients:
   delivery-client:
     name: "guava-parcel-delivery"
     url: ""
+
+kafka:
+  group-id: "guava-courier-group"
