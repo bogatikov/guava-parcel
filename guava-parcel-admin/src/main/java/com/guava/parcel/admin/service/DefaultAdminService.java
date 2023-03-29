@@ -10,6 +10,7 @@ import com.guava.parcel.admin.dto.view.CreateCourierView;
 import com.guava.parcel.admin.dto.view.OrderShortView;
 import com.guava.parcel.admin.dto.view.OrderView;
 import com.guava.parcel.admin.dto.view.SignInView;
+import com.guava.parcel.admin.event.CourierCoordinateEvent;
 import com.guava.parcel.admin.ext.AuthApi;
 import com.guava.parcel.admin.ext.ParcelDeliveryApi;
 import com.guava.parcel.admin.ext.request.ChangeOrderStatusRequest;
@@ -21,24 +22,27 @@ import com.guava.parcel.admin.model.Page;
 import com.guava.parcel.admin.model.Status;
 import com.guava.parcel.admin.service.api.AdminService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
-import java.time.Duration;
 import java.util.UUID;
-import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DefaultAdminService implements AdminService {
 
     private final ParcelDeliveryApi parcelDeliveryApi;
     private final AuthApi authApi;
     private final ModelMapper mapper;
+
+    private Sinks.Many<CourierCoordinateEvent> courierCoordinateSink = Sinks.many().multicast().directBestEffort();
 
     @Override
     public Mono<SignInView> signIn(SignInForm signInForm) {
@@ -96,12 +100,20 @@ public class DefaultAdminService implements AdminService {
 
     @Override
     public Flux<CoordinateView> subscribeCourierCoordinates(UUID courierId) {
-        return Flux.interval(Duration.ofSeconds(3L))
-                .map((i) -> new CoordinateView(courierId,
-                                RandomGenerator.getDefault().nextDouble(),
-                                RandomGenerator.getDefault().nextDouble()
+        return courierCoordinateSink.asFlux()
+                .filter(courierCoordinateEvent -> courierCoordinateEvent.courierId().equals(courierId))
+                .map((event) -> new CoordinateView(
+                                courierId,
+                                event.longitude(),
+                                event.latitude()
                         )
                 );
+    }
+
+    @Override
+    public Mono<Void> consumeCourierCoordinateEvent(CourierCoordinateEvent courierCoordinateEvent) {
+        return Mono.fromCallable(() -> courierCoordinateSink.tryEmitNext(courierCoordinateEvent))
+                .then();
     }
 
     private OrderView mapOrderResponseToOrderView(OrderResponse orderResponse) {

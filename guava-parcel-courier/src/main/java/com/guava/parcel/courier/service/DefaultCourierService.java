@@ -60,7 +60,7 @@ public class DefaultCourierService implements CourierService {
         return resolveCourierId()
                 .zipWith(deliveryApi.getOrder(changeStatusForm.orderId()))
                 .flatMap(tuple -> {
-                    if (tuple.getT1() != tuple.getT2().courierId()) {
+                    if (!tuple.getT1().equals(tuple.getT2().courierId())) {
                         // todo add custom exception
                         return Mono.error(new IllegalArgumentException("This courier can't change the order status"));
                     }

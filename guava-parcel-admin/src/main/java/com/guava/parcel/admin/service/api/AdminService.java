@@ -10,6 +10,7 @@ import com.guava.parcel.admin.dto.view.CreateCourierView;
 import com.guava.parcel.admin.dto.view.OrderShortView;
 import com.guava.parcel.admin.dto.view.OrderView;
 import com.guava.parcel.admin.dto.view.SignInView;
+import com.guava.parcel.admin.event.CourierCoordinateEvent;
 import com.guava.parcel.admin.model.Page;
 import com.guava.parcel.admin.model.Status;
 import org.springframework.lang.NonNull;
@@ -37,4 +38,6 @@ public interface AdminService {
     Mono<OrderView> getOrder(UUID orderId);
 
     Flux<CoordinateView> subscribeCourierCoordinates(UUID courierId);
+
+    Mono<Void> consumeCourierCoordinateEvent(CourierCoordinateEvent courierCoordinateEvent);
 }

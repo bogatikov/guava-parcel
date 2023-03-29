@@ -1,6 +1,9 @@
-package com.guava.parcel.courier.kafka;
+package com.guava.parcel.admin.kafka;
 
-import com.guava.parcel.courier.config.KafkaConfig;
+import com.guava.parcel.admin.config.KafkaConfig;
+import com.guava.parcel.admin.config.TopicConstants;
+import com.guava.parcel.admin.event.CourierCoordinateEvent;
+import com.guava.parcel.admin.service.api.AdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -29,6 +32,8 @@ public class KafkaController {
     private final ObjectStringConverter objectStringConverter;
     private final KafkaEventPublisherSink kafkaEventPublisherSink;
     private final KafkaConfig kafkaConfig;
+
+    private final AdminService adminService;
 
     private final Scheduler kafkaEventHandlerScheduler = Schedulers.newBoundedElastic(
             Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
@@ -96,6 +101,9 @@ public class KafkaController {
         log.info("Consume new record from {} partition-{} offset-{} with key {} and value {}",
                 record.topic(), record.partition(), record.offset(), record.key(), record.value()
         );
+        if (record.topic().equals(TopicConstants.COURIER_COORDINATE)) {
+            return convertAndPerform(record, CourierCoordinateEvent.class, adminService::consumeCourierCoordinateEvent);
+        }
         return Mono.empty();
     }
 

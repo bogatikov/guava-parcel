@@ -50,6 +50,9 @@ dependencies {
     // Mapper
     implementation("org.modelmapper:modelmapper:${modelMapperVersion}")
     // ===
+    // Kafka
+    implementation("io.projectreactor.kafka:reactor-kafka")
+    // ===
 }
 
 dependencyManagement {
