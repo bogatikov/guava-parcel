@@ -19,10 +19,10 @@ public class KafkaEventPublisherSink {
                 .then();
     }
 
-    <T> Mono<Void> convertAndEmit(T obj, String topic, String key) {
+    public <T> Mono<Void> convertAndEmit(T obj, String topic, String key) {
         return objectStringConverter.objectToString(obj)
                 .flatMap(serializedEvent -> {
-                    log.info("Broadcast message $serializedEvent to topic $topic");
+                    log.info("Broadcast message {} to topic {}", serializedEvent, topic);
                     return emitEvent(new KafkaEvent(
                                     topic,
                                     key,

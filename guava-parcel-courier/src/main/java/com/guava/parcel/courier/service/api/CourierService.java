@@ -1,7 +1,9 @@
 package com.guava.parcel.courier.service.api;
 
 import com.guava.parcel.courier.dto.form.ChangeOrderStatusForm;
+import com.guava.parcel.courier.dto.form.CoordinateForm;
 import com.guava.parcel.courier.dto.form.SignInForm;
+import com.guava.parcel.courier.dto.view.CoordinateView;
 import com.guava.parcel.courier.dto.view.OrderShortView;
 import com.guava.parcel.courier.dto.view.OrderView;
 import com.guava.parcel.courier.dto.view.SignInView;
@@ -18,4 +20,6 @@ public interface CourierService {
     Mono<OrderView> changeStatus(ChangeOrderStatusForm changeStatusForm);
 
     Mono<OrderView> getOrder(UUID orderId);
+
+    Mono<CoordinateView> sendCourierCoordinates(CoordinateForm coordinateForm);
 }

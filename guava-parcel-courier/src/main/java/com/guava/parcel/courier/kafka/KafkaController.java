@@ -1,5 +1,6 @@
 package com.guava.parcel.courier.kafka;
 
+import com.guava.parcel.courier.config.KafkaConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -27,6 +28,7 @@ public class KafkaController {
     private final KafkaSender<String, String> reactiveKafkaSender;
     private final ObjectStringConverter objectStringConverter;
     private final KafkaEventPublisherSink kafkaEventPublisherSink;
+    private final KafkaConfig kafkaConfig;
 
     private final Scheduler kafkaEventHandlerScheduler = Schedulers.newBoundedElastic(
             Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
@@ -66,6 +68,9 @@ public class KafkaController {
 
     @EventListener(ApplicationReadyEvent.class)
     public void onMessage() {
+        if (kafkaConfig.getSubscribeTopics().size() == 0) {
+            return;
+        }
         Flux.defer(reactiveKafkaReceiver::receive)
                 .subscribeOn(kafkaEventHandlerScheduler)
                 .publishOn(kafkaEventHandlerScheduler)
@@ -74,9 +79,8 @@ public class KafkaController {
                 .flatMap(group -> group.subscribeOn(kafkaEventHandlerScheduler)
                         .publishOn(kafkaEventHandlerScheduler)
                         .cancelOn(kafkaEventHandlerScheduler)
-                        .concatMap(record -> handleRecord(record)
-                                .doOnError(e -> log.error("Error kafka record handler", e))
-                        )
+                        .concatMap(this::handleRecord)
+                        .doOnError(e -> log.error("Error kafka record handler", e))
                 )
                 .onErrorResume(e -> {
                             log.error("Listener Kafka Error", e);
