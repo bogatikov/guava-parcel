@@ -18,8 +18,8 @@ import java.util.List;
 public class JwtSecurityAuthenticationManager implements ReactiveAuthenticationManager {
 
     private static final String USER_ID_CLAIM = "userId";
-    private static final String EMAIL_CLAIM = "userId";
-    private static final String USER_TYPE_CLAIM = "userId";
+    private static final String EMAIL_CLAIM = "email";
+    private static final String USER_TYPE_CLAIM = "userType";
 
     private final JWTVerifier JWTVerifier = JWT.require(Algorithm.HMAC512("secret"))
             .withIssuer("guava-parcel")

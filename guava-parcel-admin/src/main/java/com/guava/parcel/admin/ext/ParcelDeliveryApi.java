@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-@ReactiveFeignClient(name = "guava-parcel-delivery")
+@ReactiveFeignClient(name = "${clients.delivery-client.name}", url = "${clients.delivery-client.url}")
 public interface ParcelDeliveryApi {
 
     @PostMapping("order/changeStatus")

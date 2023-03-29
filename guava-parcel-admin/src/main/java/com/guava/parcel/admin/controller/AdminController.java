@@ -3,6 +3,7 @@ package com.guava.parcel.admin.controller;
 import com.guava.parcel.admin.dto.form.ChangeOrderStatusForm;
 import com.guava.parcel.admin.dto.form.CreateCourierForm;
 import com.guava.parcel.admin.dto.form.SignInForm;
+import com.guava.parcel.admin.dto.view.CoordinateView;
 import com.guava.parcel.admin.dto.view.CreateCourierView;
 import com.guava.parcel.admin.dto.view.OrderShortView;
 import com.guava.parcel.admin.dto.view.OrderView;
@@ -11,6 +12,8 @@ import com.guava.parcel.admin.model.Page;
 import com.guava.parcel.admin.model.Status;
 import com.guava.parcel.admin.service.api.AdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.lang.NonNull;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
@@ -59,5 +63,11 @@ public class AdminController {
     @PostMapping("sign-in")
     public Mono<SignInView> signIn(@Valid @RequestBody SignInForm signInForm) {
         return adminService.signIn(signInForm);
+    }
+
+    @GetMapping(value = "courier/coordinate/{courierId}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public Flux<ServerSentEvent<CoordinateView>> subscribeCourierCoordinates(@PathVariable UUID courierId) {
+        return adminService.subscribeCourierCoordinates(courierId)
+                .map(coordinateView -> ServerSentEvent.builder(coordinateView).build());
     }
 }

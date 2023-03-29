@@ -27,7 +27,9 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.UUID;
+import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 
 @Service
@@ -90,6 +92,16 @@ public class DefaultAdminService implements AdminService {
     public Mono<OrderView> getOrder(UUID orderId) {
         return parcelDeliveryApi.getOrder(orderId)
                 .map(this::mapOrderResponseToOrderView);
+    }
+
+    @Override
+    public Flux<CoordinateView> subscribeCourierCoordinates(UUID courierId) {
+        return Flux.interval(Duration.ofSeconds(3L))
+                .map((i) -> new CoordinateView(courierId,
+                                RandomGenerator.getDefault().nextDouble(),
+                                RandomGenerator.getDefault().nextDouble()
+                        )
+                );
     }
 
     private OrderView mapOrderResponseToOrderView(OrderResponse orderResponse) {

@@ -35,4 +35,6 @@ public interface AdminService {
     Mono<Page<CourierView>> getCouriers();
 
     Mono<OrderView> getOrder(UUID orderId);
+
+    Flux<CoordinateView> subscribeCourierCoordinates(UUID courierId);
 }
