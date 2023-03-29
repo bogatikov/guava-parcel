@@ -10,3 +10,17 @@ clients:
   delivery-client:
     name: "delivery-client"
     url: "http://localhost:9999/guava-delivery"
+
+kafka:
+  bootstrap-servers:
+    - "localhost:9092"
+  group-id: "guava-courier"
+  auto-offset-reset: "latest"
+
+logging:
+  level:
+    org.apache.kafka.common.utils.AppInfoParser: OFF
+    org.apache.kafka.clients.producer.ProducerConfig: OFF
+    org.apache.kafka.clients.consumer.KafkaConsumer: OFF
+    org.apache.kafka.clients.consumer.ConsumerConfig: OFF
+    org.apache.kafka.clients.NetworkClient: OFF

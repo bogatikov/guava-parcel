@@ -23,7 +23,7 @@ public class KafkaConfig {
      *  none: throw exception to the consumer if no previous offset is found for the consumer's group
      *  https://stackoverflow.com/questions/32390265/what-determines-kafka-consumer-offset
      */
-    private String autoOffsetReset;
+    private String autoOffsetReset = "latest";
 
     Duration commitInterval = Duration.ofSeconds(5);
     Integer commitBatchSize = 10000;

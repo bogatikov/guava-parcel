@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.guava"
-version = "0.0.1-SNAPSHOT"
+version = "1.0"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 configurations {
@@ -37,9 +37,8 @@ dependencies {
     implementation("com.playtika.reactivefeign:feign-reactor-spring-cloud-starter:${feignReactorSpringCloudStarter}")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     // ===
-    // Postgresql
-    runtimeOnly("org.postgresql:r2dbc-postgresql")
-    runtimeOnly("org.postgresql:postgresql")
+    // Cloud
+    implementation("org.springframework.cloud:spring-cloud-starter-consul-discovery")
     // ===
     // Lombok
     compileOnly("org.projectlombok:lombok")
@@ -49,8 +48,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:testcontainers:${testcontainersVersion}")
     testImplementation("org.testcontainers:junit-jupiter:${testcontainersVersion}")
-    testImplementation("org.testcontainers:r2dbc:${testcontainersVersion}")
-    testImplementation("org.testcontainers:postgresql:${testcontainersVersion}")
+    testImplementation("org.testcontainers:kafka:${testcontainersVersion}")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("com.github.tomakehurst:wiremock-jre8:$wiremockVersion")
     // ===

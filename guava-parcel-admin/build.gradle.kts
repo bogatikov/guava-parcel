@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.guava"
-version = "0.0.1-SNAPSHOT"
+version = "1.0"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 configurations {
@@ -60,4 +60,8 @@ dependencyManagement {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.named("jar") {
+    enabled = false
 }
