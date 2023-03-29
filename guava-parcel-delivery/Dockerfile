@@ -1,5 +1,12 @@
+FROM gradle:7-jdk17 AS build
+COPY --chown=gradle:gradle . /home/gradle/src
+WORKDIR /home/gradle/src
+RUN gradle build -x test --no-daemon
+
 FROM openjdk:17.0.2
-WORKDIR /app/
-ARG JAR_FILE=./build/libs/guava-parcel-delivery-1.0.jar
-COPY ${JAR_FILE} .
-ENTRYPOINT ["java", "-jar", "guava-parcel-delivery-1.0.jar"]
+
+RUN mkdir /app
+
+COPY --from=build /home/gradle/src/build/libs/*.jar /app/guava-delivery.jar
+
+ENTRYPOINT ["java", "-jar", "/app/guava-delivery.jar",  "--spring.profiles.active=prod"]
