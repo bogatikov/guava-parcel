@@ -18,21 +18,21 @@ spring:
         - id: guava-parcel-admin
           uri: lb://guava-parcel-admin
           predicates:
-            - Path=/guava-admin/**
+            - Path=/guava-parcel-admin/**
           filters:
-            - RewritePath=/guava-admin/(?<segment>.*), /$\{segment}
+            - RewritePath=/guava-parcel-admin/(?<segment>.*), /$\{segment}
         - id: guava-parcel-courier
           uri: lb://guava-parcel-courier
           predicates:
-            - Path=/guava-courier/**
+            - Path=/guava-parcel-courier/**
           filters:
             - RewritePath=/guava-parcel-courier/(?<segment>.*), /$\{segment}
         - id: guava-parcel-user
-          uri: lb://guava-parcel-courier
+          uri: lb://guava-parcel-user
           predicates:
-            - Path=/guava-courier/**
+            - Path=/guava-parcel-user/**
           filters:
-            - RewritePath=/guava-parcel-courier/(?<segment>.*), /$\{segment}
+            - RewritePath=/guava-parcel-user/(?<segment>.*), /$\{segment}
 management:
   endpoint:
     prometheus:
