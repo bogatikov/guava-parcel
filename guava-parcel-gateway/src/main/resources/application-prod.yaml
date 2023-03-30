@@ -5,8 +5,8 @@ spring:
     name: guava-parcel-gateway
   cloud:
     consul:
-      host: ${CONSUL_SERVER_HOST:localhost}
-      port: ${CONSUL_SERVER_PORT:8500}
+      host: ${CONSUL_SERVER_HOST}
+      port: ${CONSUL_SERVER_PORT}
       discovery:
         prefer-ip-address: true
         health-check-interval: 15s

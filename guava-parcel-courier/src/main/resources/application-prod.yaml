@@ -51,3 +51,9 @@ clients:
 
 kafka:
   group-id: "guava-courier-group"
+
+springdoc:
+  swagger-ui:
+    path: /swagger-doc/swagger-ui.html
+  api-docs:
+    path: /swagger-doc/v3/api-docs
