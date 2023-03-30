@@ -1,5 +1,6 @@
 package com.guava.guavaparcel.auth.service;
 
+import com.guava.guavaparcel.auth.dto.form.CreateUserForm;
 import com.guava.guavaparcel.auth.dto.form.SignInForm;
 import com.guava.guavaparcel.auth.dto.form.SignUpForm;
 import com.guava.guavaparcel.auth.dto.view.SignInView;
@@ -135,5 +136,34 @@ class DefaultUserServiceTest {
         Assertions.assertEquals("Dorian", userCaptor.getValue().getLastName());
         Assertions.assertEquals(email, userCaptor.getValue().getEmail());
         Assertions.assertEquals("secret", userCaptor.getValue().getPasswordHash());
+    }
+
+    @Test
+    void createUserShouldSaveUser() {
+        String email = "my@email.com";
+        when(userRepository.existsByEmail(email)).thenReturn(Mono.just(false));
+        when(userRepository.save(any())).thenAnswer(answer -> Mono.just(answer.getArgument(0)));
+
+        StepVerifier.create(userService.createUser(new CreateUserForm("Doe", "John", email, User.UserType.USER)))
+                .assertNext(userView -> {
+                    Assertions.assertEquals("Doe", userView.getLastName());
+                    Assertions.assertEquals("John", userView.getFirstName());
+                    Assertions.assertEquals(email, userView.getEmail());
+                    Assertions.assertEquals(User.UserType.USER, userView.getUserType());
+                })
+                .verifyComplete();
+
+        verify(userRepository, times(1)).save(any());
+    }
+
+    @Test
+    void createUserShouldRaiseUserAlreadyExists() {
+        String email = "my@email.com";
+        when(userRepository.existsByEmail(email)).thenReturn(Mono.just(true));
+
+        StepVerifier.create(userService.createUser(new CreateUserForm("Doe", "John", email, User.UserType.USER)))
+                .verifyError(UserAlreadyExists.class);
+
+        verify(userRepository, times(0)).save(any());
     }
 }

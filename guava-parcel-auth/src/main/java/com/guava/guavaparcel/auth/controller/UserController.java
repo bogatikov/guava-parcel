@@ -34,7 +34,6 @@ public class UserController {
     }
 
     @PostMapping("create")
-    //TODO @PreAuthorize("hasAuthority('ADMIN')")
     public Mono<UserView> createUser(@Valid @RequestBody CreateUserForm createUserForm) {
         return userService.createUser(createUserForm);
     }

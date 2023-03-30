@@ -33,6 +33,10 @@ public class DefaultUserService implements UserService {
     @Override
     public Mono<UserView> createUser(CreateUserForm createUserForm) {
         return Mono.just(createUserForm)
+                .filterWhen(form -> userRepository.existsByEmail(form.email())
+                        .map(exists -> !exists)
+                )
+                .switchIfEmpty(Mono.error(new UserAlreadyExists("User with email %s already exists".formatted(createUserForm.email()))))
                 .map(form -> new User(UUID.randomUUID(),
                         form.email(),
                         form.lastName(),
