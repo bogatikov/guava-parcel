@@ -1,6 +1,6 @@
 plugins {
     java
-    id("org.springframework.boot") version "3.0.4"
+    id("org.springframework.boot") version "2.7.10"
     id("io.spring.dependency-management") version "1.1.0"
     id("org.liquibase.gradle") version "2.2.0"
 }
@@ -29,7 +29,7 @@ buildscript {
     }
 }
 
-extra["springCloudVersion"] = "2022.0.1"
+extra["springCloudVersion"] = "2021.0.6"
 val testcontainersVersion = "1.17.3"
 val modelMapperVersion = "3.1.1"
 
@@ -74,6 +74,10 @@ dependencies {
     // ===
     // Mapper
     implementation("org.modelmapper:modelmapper:${modelMapperVersion}")
+    // ===
+    // OpenAPI
+    implementation("org.springdoc:springdoc-openapi-webflux-core:1.6.15")
+    implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.15")
     // ===
 }
 
