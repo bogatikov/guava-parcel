@@ -1,6 +1,8 @@
 package com.guava.guavaparcel.controller;
 
+import com.guava.guavaparcel.dto.form.ChangeDestinationForm;
 import com.guava.guavaparcel.dto.form.ChangeOrderStatusForm;
+import com.guava.guavaparcel.dto.form.CreateOrderForm;
 import com.guava.guavaparcel.dto.form.SetCourierForm;
 import com.guava.guavaparcel.dto.view.OrderShortView;
 import com.guava.guavaparcel.dto.view.OrderView;
@@ -55,5 +57,17 @@ public class OrderController {
     @PostMapping("setCourier")
     public Mono<OrderView> setCourier(@RequestBody @Valid SetCourierForm setCourierForm) {
         return orderService.setCourier(setCourierForm);
+    }
+
+    @PostMapping("create")
+    // todo test
+    public Mono<OrderView> createOrder(@RequestBody @Valid CreateOrderForm createOrderForm) {
+        return orderService.createOrder(createOrderForm);
+    }
+
+    @PostMapping("changeDestination")
+    // todo test
+    public Mono<OrderView> changeDestination(@RequestBody @Valid ChangeDestinationForm changeDestinationForm) {
+        return orderService.changeDestination(changeDestinationForm);
     }
 }
