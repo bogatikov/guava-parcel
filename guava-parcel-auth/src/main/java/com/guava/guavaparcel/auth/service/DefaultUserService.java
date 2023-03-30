@@ -13,6 +13,7 @@ import com.guava.guavaparcel.auth.repostiory.UserRepository;
 import com.guava.guavaparcel.auth.service.api.TokenService;
 import com.guava.guavaparcel.auth.service.api.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DefaultUserService implements UserService {
     private static final Integer DEFAULT_PASSWORD_LENGTH = 8;
 
@@ -37,16 +39,20 @@ public class DefaultUserService implements UserService {
                         .map(exists -> !exists)
                 )
                 .switchIfEmpty(Mono.error(new UserAlreadyExists("User with email %s already exists".formatted(createUserForm.email()))))
-                .map(form -> new User(UUID.randomUUID(),
-                        form.email(),
-                        form.lastName(),
-                        form.firstName(),
-                        generatePassword(),
-                        createUserForm.userType(),
-                        null,
-                        Instant.now(),
-                        1L,
-                        true))
+                .map(form -> new User(
+                                UUID.randomUUID(),
+                                form.email(),
+                                form.lastName(),
+                                form.firstName(),
+                                generatePassword(),
+                                createUserForm.userType(),
+                                null,
+                                Instant.now(),
+                                1L,
+                                true
+                        )
+                )
+                .doOnNext(user -> log.info("User password for {} is {}", user.getEmail(), user.getPasswordHash()))
                 .flatMap(userRepository::save)
                 .map(savedUser -> mapper.map(savedUser, UserView.class));
     }
