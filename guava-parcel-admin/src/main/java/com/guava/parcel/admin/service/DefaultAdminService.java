@@ -86,11 +86,7 @@ public class DefaultAdminService implements AdminService {
     }
 
     @Override
-    public Flux<CoordinateView> getCourierCoordinates(UUID courierId) {
-        return null;
-    }
-
-    @Override
+    // todo
     public Mono<Page<CourierView>> getCouriers() {
         return null;
     }
