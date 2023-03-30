@@ -61,6 +61,10 @@ dependencies {
     // Kafka
     implementation("io.projectreactor.kafka:reactor-kafka")
     // ===
+    // OpenAPI
+    implementation("org.springdoc:springdoc-openapi-webflux-core:1.6.15")
+    implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.15")
+    // ===
 }
 
 dependencyManagement {
