@@ -30,3 +30,9 @@ spring:
     database-change-log-lock-table: "guava_auth_change_log_lock"
     liquibase-schema: public
     default-schema: "guava_auth"
+
+springdoc:
+  swagger-ui:
+    path: /swagger-doc/swagger-ui.html
+  api-docs:
+    path: /swagger-doc/v3/api-docs

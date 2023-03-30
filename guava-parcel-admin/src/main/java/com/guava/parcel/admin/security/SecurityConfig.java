@@ -20,6 +20,7 @@ public class SecurityConfig {
     private static final String ACTUATOR_PATH_PATTERN = "/actuator/**";
     private static final String SIGN_IN_PATH_PATTERN = "/sign-in";
     private static final String ADMIN_AUTHORITY = "ADMIN";
+    private static final String SWAGGER_DOC = "/swagger-doc/**";
 
 
     private final ReactiveAuthenticationManager reactiveAuthenticationManager;
@@ -39,6 +40,7 @@ public class SecurityConfig {
                 .authenticationManager(reactiveAuthenticationManager)
                 .securityContextRepository(securityContextRepository)
                 .authorizeExchange()
+                .pathMatchers(SWAGGER_DOC).permitAll()
                 .pathMatchers(ACTUATOR_PATH_PATTERN).permitAll()
                 .pathMatchers(HttpMethod.POST, SIGN_IN_PATH_PATTERN).permitAll()
                 .anyExchange().hasAuthority(ADMIN_AUTHORITY)

@@ -1,0 +1,70 @@
+openapi: 3.0.1
+info:
+  title: guava-parcel
+  version: v1
+paths:
+  /guava-parcel-admin/order/list:
+    get:
+      tags:
+        - guava-parcel-admin
+        - order
+      operationId: getOrderListAsAdmin
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/OrderStatus'
+      responses:
+        200:
+          description: OK
+          content:
+            'application/json':
+              schema:
+
+
+components:
+  schemas:
+    OrderStatus:
+      type: string
+      enum:
+        - NEW
+        - WAITING_FOR_COURIER
+        - DELIVERING
+        - FINISHED
+        - CANCELED
+    OrderView:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        courierId:
+          type: string
+          format: uuid
+        sourceAddress:
+          type: string
+        destinationAddress:
+          type: string
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        updatedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    Page:
+      type: object
+      properties:
+        content:
+          type: array
+        currentPage:
+          type: integer
+        totalElements:
+          type: integer
+        numberOfElements:
+          type: integer
