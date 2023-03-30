@@ -1,38 +1,481 @@
 openapi: 3.0.1
 info:
-  title: guava-parcel
+  title: Guava Parcel
   version: v1
+servers:
+  - url: http://localhost:8080/
+    description: Generated server url
 paths:
+  /guava-parcel-admin/sign-in:
+    post:
+      tags:
+        - guava-parcel-admin-service
+      operationId: signIn
+      requestBody:
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/SignInView'
+  /guava-parcel-admin/order/changeStatus:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-admin-service
+      operationId: changeOrderStatus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeOrderStatusForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/OrderView'
+  /guava-parcel-admin/courier/create:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-admin-service
+      operationId: createCourier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCourierForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/CreateCourierView'
+  /guava-parcel-admin/order/{orderId}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-admin-service
+      operationId: getOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/OrderView'
   /guava-parcel-admin/order/list:
     get:
+      security:
+        - bearerAuth: [ ]
       tags:
-        - guava-parcel-admin
-        - order
-      operationId: getOrderListAsAdmin
+        - guava-parcel-admin-service
+      operationId: getOrders
       parameters:
         - name: status
           in: query
           required: false
           schema:
-            $ref: '#/components/schemas/OrderStatus'
+            type: string
+            enum:
+              - NEW
+              - WAITING_FOR_COURIER
+              - DELIVERING
+              - FINISHED
+              - CANCELED
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
       responses:
-        200:
+        "200":
           description: OK
           content:
             'application/json':
               schema:
-
+                $ref: '#/components/schemas/PageOrderShortView'
+  /guava-parcel-admin/courier/coordinate/{courierId}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-admin-service
+      operationId: subscribeCourierCoordinates
+      parameters:
+        - name: courierId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CoordinateView'
+  /guava-parcel-auth/user/sign-up:
+    post:
+      tags:
+        - guava-parcel-auth
+      operationId: signUp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/SignUpView'
+  /guava-parcel-auth/user/sign-in:
+    post:
+      tags:
+        - guava-parcel-auth
+      operationId: signIn
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/SignInView'
+  /guava-parcel-auth/user/create:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-auth
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/UserView'
+  /guava-parcel-auth/token/refresh:
+    post:
+      tags:
+        - guava-parcel-auth
+      operationId: refreshToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/TokenView'
+  /guava-parcel-delivery/order/setCourier:
+    post:
+      tags:
+        - guava-parcel-delivery
+      operationId: setCourier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetCourierForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/OrderView'
+  /guava-parcel-delivery/order/changeStatus:
+    post:
+      tags:
+        - guava-parcel-delivery
+      operationId: changeOrderStatus
+      parameters:
+        - name: changeOrderStatusForm
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/ChangeOrderStatusForm'
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/OrderView'
+  /guava-parcel-delivery/order/{orderId}:
+    get:
+      tags:
+        - guava-parcel-delivery
+      operationId: getOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/OrderView'
+  /guava-parcel-delivery/order/list:
+    get:
+      tags:
+        - guava-parcel-delivery
+      operationId: getOrders
+      parameters:
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: courierId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - NEW
+              - WAITING_FOR_COURIER
+              - DELIVERING
+              - FINISHED
+              - CANCELED
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PageOrderShortView'
+  /guava-parcel-courier/sign-in:
+    post:
+      tags:
+        - guava-parcel-courier
+      operationId: signIn
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SignInView'
+  /guava-parcel-courier/courier/coordinate:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-courier
+      operationId: sendCourierCoordinates
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoordinateForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CoordinateView'
+  /guava-parcel-courier/changeStatus:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-courier
+      operationId: changeStatus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeOrderStatusForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/OrderView'
+  /guava-parcel-courier/order/{orderId}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-courier
+      operationId: getOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/OrderView'
+  /guava-parcel-courier/order/list:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-courier
+      operationId: getOrders
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PageOrderShortView'
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
-    OrderStatus:
-      type: string
-      enum:
-        - NEW
-        - WAITING_FOR_COURIER
-        - DELIVERING
-        - FINISHED
-        - CANCELED
+    CoordinateForm:
+      required:
+        - latitude
+        - longitude
+      type: object
+      properties:
+        longitude:
+          type: number
+          format: double
+        latitude:
+          type: number
+          format: double
+    SetCourierForm:
+      type: object
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        courierId:
+          type: string
+          format: uuid
+    ChangeOrderStatusForm:
+      required:
+        - orderId
+        - status
+      type: object
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - NEW
+            - WAITING_FOR_COURIER
+            - DELIVERING
+            - FINISHED
+            - CANCELED
     OrderView:
       type: object
       properties:
@@ -50,21 +493,149 @@ components:
         destinationAddress:
           type: string
         status:
-          $ref: '#/components/schemas/OrderStatus'
+          type: string
+          enum:
+            - NEW
+            - WAITING_FOR_COURIER
+            - DELIVERING
+            - FINISHED
+            - CANCELED
         updatedAt:
           type: string
           format: date-time
         createdAt:
           type: string
           format: date-time
-    Page:
+    CreateCourierForm:
+      type: object
+    CreateCourierView:
+      type: object
+    OrderShortView:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - NEW
+            - WAITING_FOR_COURIER
+            - DELIVERING
+            - FINISHED
+            - CANCELED
+        updatedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    PageOrderShortView:
       type: object
       properties:
         content:
           type: array
+          items:
+            $ref: '#/components/schemas/OrderShortView'
         currentPage:
           type: integer
+          format: int32
         totalElements:
           type: integer
+          format: int64
         numberOfElements:
           type: integer
+          format: int32
+    CoordinateView:
+      type: object
+      properties:
+        courierId:
+          type: string
+          format: uuid
+        longitude:
+          type: number
+        latitude:
+          type: number
+    SignUpForm:
+      required:
+        - email
+        - firstName
+        - lastName
+        - password
+      type: object
+      properties:
+        lastName:
+          type: string
+        firstName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    SignUpView:
+      type: object
+    SignInForm:
+      required:
+        - email
+        - password
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    SignInView:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+    CreateUserForm:
+      required:
+        - email
+        - firstName
+        - lastName
+        - userType
+      type: object
+      properties:
+        lastName:
+          type: string
+        firstName:
+          type: string
+        email:
+          type: string
+        userType:
+          type: string
+          enum:
+            - USER
+            - COURIER
+            - ADMIN
+    UserView:
+      type: object
+      properties:
+        lastName:
+          type: string
+        firstName:
+          type: string
+        email:
+          type: string
+        userType:
+          type: string
+          enum:
+            - USER
+            - COURIER
+            - ADMIN
+    RefreshTokenForm:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+    TokenView:
+      type: object
+      properties:
+        token:
+          type: string
