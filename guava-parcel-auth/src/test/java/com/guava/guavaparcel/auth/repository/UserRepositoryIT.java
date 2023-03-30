@@ -47,4 +47,38 @@ public class UserRepositoryIT extends BaseIT {
                 .expectNext(user)
                 .verifyComplete();
     }
+
+    @Test
+    @DisplayName("Test userRepository.existsByEmail()")
+    public void testExistsByEmailWhenThereIsNoEntryWithEmail() {
+        String email = "my@email.com";
+
+        StepVerifier.create(userRepository.existsByEmail(email))
+                .expectNext(false)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Test userRepository.existsByEmail()")
+    public void testExistsByEmailWhenThereIsEntryWithEmail() {
+        String email = "my@email.com";
+        var user = new User(
+                UUID.randomUUID(),
+                email,
+                "John",
+                "Doe",
+                "password",
+                User.UserType.USER,
+                Instant.now(),
+                Instant.now(),
+                1L,
+                true
+        );
+
+        userRepository.save(user).block();
+
+        StepVerifier.create(userRepository.existsByEmail(email))
+                .expectNext(true)
+                .verifyComplete();
+    }
 }
