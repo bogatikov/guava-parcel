@@ -6,20 +6,22 @@ import com.guava.parcel.admin.dto.form.SetCourierForm;
 import com.guava.parcel.admin.dto.form.SignInForm;
 import com.guava.parcel.admin.dto.view.CoordinateView;
 import com.guava.parcel.admin.dto.view.CourierView;
-import com.guava.parcel.admin.dto.view.CreateCourierView;
 import com.guava.parcel.admin.dto.view.OrderShortView;
 import com.guava.parcel.admin.dto.view.OrderView;
 import com.guava.parcel.admin.dto.view.SignInView;
+import com.guava.parcel.admin.dto.view.UserView;
 import com.guava.parcel.admin.event.CourierCoordinateEvent;
 import com.guava.parcel.admin.ext.AuthApi;
 import com.guava.parcel.admin.ext.ParcelDeliveryApi;
 import com.guava.parcel.admin.ext.request.ChangeOrderStatusRequest;
+import com.guava.parcel.admin.ext.request.CreateUserRequest;
 import com.guava.parcel.admin.ext.request.SetCourierRequest;
 import com.guava.parcel.admin.ext.request.SignInRequest;
 import com.guava.parcel.admin.ext.response.OrderResponse;
 import com.guava.parcel.admin.ext.response.OrderShortResponse;
 import com.guava.parcel.admin.model.Page;
 import com.guava.parcel.admin.model.Status;
+import com.guava.parcel.admin.model.UserType;
 import com.guava.parcel.admin.service.api.AdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +44,7 @@ public class DefaultAdminService implements AdminService {
     private final AuthApi authApi;
     private final ModelMapper mapper;
 
-    private Sinks.Many<CourierCoordinateEvent> courierCoordinateSink = Sinks.many().multicast().directBestEffort();
+    private final Sinks.Many<CourierCoordinateEvent> courierCoordinateSink = Sinks.many().multicast().directBestEffort();
 
     @Override
     public Mono<SignInView> signIn(SignInForm signInForm) {
@@ -51,9 +53,10 @@ public class DefaultAdminService implements AdminService {
     }
 
     @Override
-    public Mono<CreateCourierView> createCourier(CreateCourierForm createCourierForm) {
-        //todo
-        return null;
+    public Mono<UserView> createCourier(CreateCourierForm createCourierForm) {
+        return Mono.just(createCourierForm)
+                .flatMap(form -> authApi.createUser(new CreateUserRequest(form.lastName(), form.firstName(), form.email(), UserType.COURIER)))
+                .map(userResponse -> mapper.map(userResponse, UserView.class));
     }
 
     @Override

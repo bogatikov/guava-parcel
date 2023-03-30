@@ -6,10 +6,10 @@ import com.guava.parcel.admin.dto.form.SetCourierForm;
 import com.guava.parcel.admin.dto.form.SignInForm;
 import com.guava.parcel.admin.dto.view.CoordinateView;
 import com.guava.parcel.admin.dto.view.CourierView;
-import com.guava.parcel.admin.dto.view.CreateCourierView;
 import com.guava.parcel.admin.dto.view.OrderShortView;
 import com.guava.parcel.admin.dto.view.OrderView;
 import com.guava.parcel.admin.dto.view.SignInView;
+import com.guava.parcel.admin.dto.view.UserView;
 import com.guava.parcel.admin.event.CourierCoordinateEvent;
 import com.guava.parcel.admin.model.Page;
 import com.guava.parcel.admin.model.Status;
@@ -23,7 +23,7 @@ public interface AdminService {
 
     Mono<SignInView> signIn(SignInForm signInForm);
 
-    Mono<CreateCourierView> createCourier(CreateCourierForm createCourierForm);
+    Mono<UserView> createCourier(CreateCourierForm createCourierForm);
 
     Mono<OrderView> changeOrderStatus(ChangeOrderStatusForm changeOrderStatusForm);
 

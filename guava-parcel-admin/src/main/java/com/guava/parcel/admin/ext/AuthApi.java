@@ -16,5 +16,5 @@ public interface AuthApi {
     Mono<SignInResponse> signIn(@RequestBody SignInRequest signInRequest);
 
     @PostMapping("user/createUser")
-    Mono<UserResponse> signIn(@RequestBody CreateUserRequest createUserRequest);
+    Mono<UserResponse> createUser(@RequestBody CreateUserRequest createUserRequest);
 }
