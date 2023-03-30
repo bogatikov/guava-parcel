@@ -21,6 +21,8 @@ repositories {
 extra["springCloudVersion"] = "2021.0.5"
 val feignReactorSpringCloudStarter = "3.2.6"
 val modelMapperVersion = "3.1.1"
+val testcontainersVersion = "1.17.3"
+val wiremockVersion = "2.35.0"
 
 dependencies {
     // JWT
@@ -42,7 +44,11 @@ dependencies {
     // ===
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.testcontainers:testcontainers:${testcontainersVersion}")
+    testImplementation("org.testcontainers:junit-jupiter:${testcontainersVersion}")
+    testImplementation("org.testcontainers:kafka:${testcontainersVersion}")
     testImplementation("io.projectreactor:reactor-test")
+    testImplementation("com.github.tomakehurst:wiremock-jre8:$wiremockVersion")
     // ===
     // Monitoring
     implementation("io.micrometer:micrometer-registry-prometheus")
