@@ -236,7 +236,7 @@ paths:
         "200":
           description: OK
           content:
-            '*/*':
+            'application/json':
               schema:
                 $ref: '#/components/schemas/OrderView'
   /guava-parcel-delivery/order/changeStatus:
@@ -254,7 +254,7 @@ paths:
         "200":
           description: OK
           content:
-            '*/*':
+            'application/json':
               schema:
                 $ref: '#/components/schemas/OrderView'
   /guava-parcel-delivery/order/{orderId}:
@@ -273,7 +273,7 @@ paths:
         "200":
           description: OK
           content:
-            '*/*':
+            'application/json':
               schema:
                 $ref: '#/components/schemas/OrderView'
   /guava-parcel-delivery/order/list:
@@ -321,7 +321,7 @@ paths:
         "200":
           description: OK
           content:
-            '*/*':
+            'application/json':
               schema:
                 $ref: '#/components/schemas/PageOrderShortView'
   /guava-parcel-courier/sign-in:
@@ -339,7 +339,7 @@ paths:
         "200":
           description: OK
           content:
-            '*/*':
+            'application/json':
               schema:
                 $ref: '#/components/schemas/SignInView'
   /guava-parcel-courier/courier/coordinate:
@@ -359,7 +359,7 @@ paths:
         "200":
           description: OK
           content:
-            '*/*':
+            'application/json':
               schema:
                 $ref: '#/components/schemas/CoordinateView'
   /guava-parcel-courier/changeStatus:
@@ -379,7 +379,7 @@ paths:
         "200":
           description: OK
           content:
-            '*/*':
+            'application/json':
               schema:
                 $ref: '#/components/schemas/OrderView'
   /guava-parcel-courier/order/{orderId}:
@@ -400,7 +400,7 @@ paths:
         "200":
           description: OK
           content:
-            '*/*':
+            'application/json':
               schema:
                 $ref: '#/components/schemas/OrderView'
   /guava-parcel-courier/order/list:
@@ -427,7 +427,131 @@ paths:
         "200":
           description: OK
           content:
-            '*/*':
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/PageOrderShortView'
+  /guava-parcel-user/sign-up:
+    post:
+      tags:
+        - guava-parcel-user
+      operationId: signUp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/SignUpView'
+  /guava-parcel-user/sign-in:
+    post:
+      tags:
+        - guava-parcel-user
+      operationId: signIn
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/SignInView'
+  /guava-parcel-user/order/create:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-user
+      operationId: createOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/OrderView'
+  /guava-parcel-user/order/changeDestination:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-user
+      operationId: createOrder_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeDestinationForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/OrderView'
+  /guava-parcel-user/order/{orderId}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-user
+      operationId: getOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/OrderView'
+  /guava-parcel-user/order/list:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-user
+      operationId: getOrders
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
               schema:
                 $ref: '#/components/schemas/PageOrderShortView'
 
@@ -438,6 +562,17 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    ChangeDestinationForm:
+      required:
+        - destinationAddress
+        - orderId
+      type: object
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        destinationAddress:
+          type: string
     CoordinateForm:
       required:
         - latitude
@@ -506,6 +641,16 @@ components:
         createdAt:
           type: string
           format: date-time
+    CreateOrderForm:
+      required:
+        - destinationAddress
+        - sourceAddress
+      type: object
+      properties:
+        sourceAddress:
+          type: string
+        destinationAddress:
+          type: string
     CreateCourierForm:
       type: object
     CreateCourierView:
