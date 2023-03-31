@@ -2,6 +2,7 @@ package com.guava.parcel.admin.controller;
 
 import com.guava.parcel.admin.dto.form.ChangeOrderStatusForm;
 import com.guava.parcel.admin.dto.form.CreateCourierForm;
+import com.guava.parcel.admin.dto.form.SetCourierForm;
 import com.guava.parcel.admin.dto.form.SignInForm;
 import com.guava.parcel.admin.dto.view.CoordinateView;
 import com.guava.parcel.admin.dto.view.CourierView;
@@ -78,5 +79,10 @@ public class AdminController {
             @Valid @NotNull @RequestParam("size") Integer size
     ) {
         return adminService.getCouriers(page, size);
+    }
+
+    @PostMapping("courier/setCourier")
+    public Mono<OrderView> setCourier(@RequestBody @Valid SetCourierForm setCourierForm) {
+        return adminService.setCourier(setCourierForm);
     }
 }

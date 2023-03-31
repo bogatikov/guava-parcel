@@ -87,7 +87,6 @@ public class DefaultAdminService implements AdminService {
     }
 
     @Override
-    // todo
     public Mono<Page<CourierView>> getCouriers(Integer page, Integer size) {
         return authApi.getUserList(UserType.COURIER, page, size)
                 .map(userResponsePage -> {
