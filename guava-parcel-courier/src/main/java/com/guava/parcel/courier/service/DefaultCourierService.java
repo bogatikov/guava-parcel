@@ -7,6 +7,7 @@ import com.guava.parcel.courier.dto.view.CoordinateView;
 import com.guava.parcel.courier.dto.view.OrderShortView;
 import com.guava.parcel.courier.dto.view.OrderView;
 import com.guava.parcel.courier.dto.view.SignInView;
+import com.guava.parcel.courier.error.EntityNotFound;
 import com.guava.parcel.courier.event.CourierCoordinateEvent;
 import com.guava.parcel.courier.ext.AuthApi;
 import com.guava.parcel.courier.ext.ParcelDeliveryApi;
@@ -21,6 +22,7 @@ import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -55,17 +57,12 @@ public class DefaultCourierService implements CourierService {
     }
 
     @Override
-    //todo add test
     public Mono<OrderView> changeStatus(ChangeOrderStatusForm changeStatusForm) {
         return resolveCourierId()
                 .zipWith(deliveryApi.getOrder(changeStatusForm.orderId()))
-                .flatMap(tuple -> {
-                    if (!tuple.getT1().equals(tuple.getT2().courierId())) {
-                        // todo add custom exception
-                        return Mono.error(new IllegalArgumentException("This courier can't change the order status"));
-                    }
-                    return deliveryApi.changeOrderStatus(new ChangeOrderStatusRequest(changeStatusForm.orderId(), changeStatusForm.status()));
-                })
+                .filter(tuple -> tuple.getT1().equals(tuple.getT2().courierId()))
+                .switchIfEmpty(Mono.error(new EntityNotFound("This courier can't change the order status")))
+                .flatMap(tuple -> deliveryApi.changeOrderStatus(new ChangeOrderStatusRequest(changeStatusForm.orderId(), changeStatusForm.status())))
                 .map(orderResponse -> mapper.map(orderResponse, OrderView.class));
     }
 
@@ -73,13 +70,9 @@ public class DefaultCourierService implements CourierService {
     public Mono<OrderView> getOrder(UUID orderId) {
         return resolveCourierId()
                 .zipWith(deliveryApi.getOrder(orderId))
-                .flatMap(tuple -> {
-                    if (tuple.getT1() != tuple.getT2().courierId()) {
-                        // todo add custom exception
-                        return Mono.error(new IllegalArgumentException("This courier can't see the order"));
-                    }
-                    return Mono.just(tuple.getT2());
-                })
+                .filter(tuple -> tuple.getT1().equals(tuple.getT2().courierId()))
+                .switchIfEmpty(Mono.error(new EntityNotFound("This courier can't change the order status")))
+                .map(Tuple2::getT2)
                 .map(orderResponse -> mapper.map(orderResponse, OrderView.class));
     }
 
