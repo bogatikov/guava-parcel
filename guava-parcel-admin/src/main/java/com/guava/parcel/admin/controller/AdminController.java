@@ -4,6 +4,7 @@ import com.guava.parcel.admin.dto.form.ChangeOrderStatusForm;
 import com.guava.parcel.admin.dto.form.CreateCourierForm;
 import com.guava.parcel.admin.dto.form.SignInForm;
 import com.guava.parcel.admin.dto.view.CoordinateView;
+import com.guava.parcel.admin.dto.view.CourierView;
 import com.guava.parcel.admin.dto.view.OrderShortView;
 import com.guava.parcel.admin.dto.view.OrderView;
 import com.guava.parcel.admin.dto.view.SignInView;
@@ -69,5 +70,13 @@ public class AdminController {
     public Flux<ServerSentEvent<CoordinateView>> subscribeCourierCoordinates(@PathVariable UUID courierId) {
         return adminService.subscribeCourierCoordinates(courierId)
                 .map(coordinateView -> ServerSentEvent.builder(coordinateView).build());
+    }
+
+    @GetMapping("courier/list")
+    public Mono<Page<CourierView>> getCouriers(
+            @Valid @NotNull @RequestParam("page") Integer page,
+            @Valid @NotNull @RequestParam("size") Integer size
+    ) {
+        return adminService.getCouriers(page, size);
     }
 }

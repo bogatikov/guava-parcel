@@ -4,6 +4,9 @@ import com.guava.parcel.admin.ext.request.CreateUserRequest;
 import com.guava.parcel.admin.ext.request.SignInRequest;
 import com.guava.parcel.admin.ext.response.SignInResponse;
 import com.guava.parcel.admin.ext.response.UserResponse;
+import com.guava.parcel.admin.model.Page;
+import com.guava.parcel.admin.model.UserType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import reactivefeign.spring.config.ReactiveFeignClient;
@@ -17,4 +20,7 @@ public interface AuthApi {
 
     @PostMapping("user/createUser")
     Mono<UserResponse> createUser(@RequestBody CreateUserRequest createUserRequest);
+
+    @GetMapping("user/list")
+    Mono<Page<UserResponse>> getUserList(UserType userType, Integer page, Integer size);
 }

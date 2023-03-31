@@ -18,6 +18,6 @@ public abstract class BaseIT {
     @DynamicPropertySource
     static void datasourceConfig(DynamicPropertyRegistry registry) {
         registry.add("kafka.bootstrapServers", kafka::getBootstrapServers);
-        registry.add("kafka.groupId", () -> "guava-courier-it");
+        registry.add("kafka.groupId", () -> "guava-admin-it");
     }
 }

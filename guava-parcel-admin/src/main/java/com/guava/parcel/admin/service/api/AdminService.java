@@ -31,7 +31,7 @@ public interface AdminService {
 
     Mono<OrderView> setCourier(SetCourierForm setCourierForm);
 
-    Mono<Page<CourierView>> getCouriers();
+    Mono<Page<CourierView>> getCouriers(Integer page, Integer size);
 
     Mono<OrderView> getOrder(UUID orderId);
 

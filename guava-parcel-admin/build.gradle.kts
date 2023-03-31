@@ -1,6 +1,6 @@
 plugins {
     java
-    id("org.springframework.boot") version "2.7.8"
+    id("org.springframework.boot") version "2.7.10"
     id("io.spring.dependency-management") version "1.1.0"
 }
 
@@ -18,7 +18,7 @@ repositories {
     mavenCentral()
 }
 
-extra["springCloudVersion"] = "2021.0.5"
+extra["springCloudVersion"] = "2021.0.6"
 val feignReactorSpringCloudStarter = "3.2.6"
 val modelMapperVersion = "3.1.1"
 val testcontainersVersion = "1.17.3"

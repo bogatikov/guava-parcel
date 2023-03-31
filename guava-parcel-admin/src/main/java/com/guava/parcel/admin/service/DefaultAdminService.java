@@ -32,6 +32,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -87,8 +88,17 @@ public class DefaultAdminService implements AdminService {
 
     @Override
     // todo
-    public Mono<Page<CourierView>> getCouriers() {
-        return null;
+    public Mono<Page<CourierView>> getCouriers(Integer page, Integer size) {
+        return authApi.getUserList(UserType.COURIER, page, size)
+                .map(userResponsePage -> {
+                    List<CourierView> courierViewList = userResponsePage.getContent().stream()
+                            .map(userResponse -> mapper.map(userResponse, CourierView.class))
+                            .collect(Collectors.toList());
+                    return new Page<>(courierViewList,
+                            userResponsePage.getCurrentPage(),
+                            userResponsePage.getTotalElements(),
+                            userResponsePage.getNumberOfElements());
+                });
     }
 
     @Override

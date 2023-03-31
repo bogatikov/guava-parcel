@@ -4,6 +4,11 @@ spring:
       enabled: false
 
 clients:
+  feign-client:
+    read-timeout: 3000
+    write-timeout: 3000
+    connect-timeout: 3000
+    response-timeout: 3000
   auth-client:
     name: "auth-client"
     url: "http://localhost:9999/guava-auth"
