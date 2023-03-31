@@ -8,6 +8,7 @@ import com.guava.guavaparcel.auth.dto.view.SignUpView;
 import com.guava.guavaparcel.auth.dto.view.UserView;
 import com.guava.guavaparcel.auth.error.EntityNotFound;
 import com.guava.guavaparcel.auth.error.UserAlreadyExists;
+import com.guava.guavaparcel.auth.model.Page;
 import com.guava.guavaparcel.auth.model.User;
 import com.guava.guavaparcel.auth.repostiory.UserRepository;
 import com.guava.guavaparcel.auth.service.api.TokenService;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -87,6 +89,15 @@ public class DefaultUserService implements UserService {
                         )
                 )
                 .map(user -> new SignUpView());
+    }
+
+    @Override
+    public Mono<Page<UserView>> getUserList(User.UserType userType, Integer page, Integer size) {
+        return userRepository.findAllByUserType(userType, PageRequest.of(page, size))
+                .map(user -> mapper.map(user, UserView.class))
+                .collectList()
+                .zipWith(userRepository.countAllByUserType(userType))
+                .map(tuple -> new Page<>(tuple.getT1(), page, tuple.getT2(), tuple.getT1().size()));
     }
 
     private String generatePassword() {

@@ -6,23 +6,28 @@ import com.guava.guavaparcel.auth.dto.form.SignUpForm;
 import com.guava.guavaparcel.auth.dto.view.SignInView;
 import com.guava.guavaparcel.auth.dto.view.SignUpView;
 import com.guava.guavaparcel.auth.dto.view.TokenView;
+import com.guava.guavaparcel.auth.dto.view.UserView;
 import com.guava.guavaparcel.auth.error.EntityNotFound;
 import com.guava.guavaparcel.auth.error.UserAlreadyExists;
 import com.guava.guavaparcel.auth.model.User;
 import com.guava.guavaparcel.auth.repostiory.UserRepository;
 import com.guava.guavaparcel.auth.service.api.TokenService;
 import com.guava.guavaparcel.auth.service.api.UserService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class DefaultUserServiceTest {
@@ -132,10 +137,10 @@ class DefaultUserServiceTest {
 
         verify(userRepository).save(userCaptor.capture());
 
-        Assertions.assertEquals("Gray", userCaptor.getValue().getFirstName());
-        Assertions.assertEquals("Dorian", userCaptor.getValue().getLastName());
-        Assertions.assertEquals(email, userCaptor.getValue().getEmail());
-        Assertions.assertEquals("secret", userCaptor.getValue().getPasswordHash());
+        assertEquals("Gray", userCaptor.getValue().getFirstName());
+        assertEquals("Dorian", userCaptor.getValue().getLastName());
+        assertEquals(email, userCaptor.getValue().getEmail());
+        assertEquals("secret", userCaptor.getValue().getPasswordHash());
     }
 
     @Test
@@ -146,10 +151,10 @@ class DefaultUserServiceTest {
 
         StepVerifier.create(userService.createUser(new CreateUserForm("Doe", "John", email, User.UserType.USER)))
                 .assertNext(userView -> {
-                    Assertions.assertEquals("Doe", userView.getLastName());
-                    Assertions.assertEquals("John", userView.getFirstName());
-                    Assertions.assertEquals(email, userView.getEmail());
-                    Assertions.assertEquals(User.UserType.USER, userView.getUserType());
+                    assertEquals("Doe", userView.getLastName());
+                    assertEquals("John", userView.getFirstName());
+                    assertEquals(email, userView.getEmail());
+                    assertEquals(User.UserType.USER, userView.getUserType());
                 })
                 .verifyComplete();
 
@@ -165,5 +170,66 @@ class DefaultUserServiceTest {
                 .verifyError(UserAlreadyExists.class);
 
         verify(userRepository, times(0)).save(any());
+    }
+
+    @Test
+    void getUserListEmpty() {
+        when(userRepository.findAllByUserType(User.UserType.USER, PageRequest.of(0, 20)))
+                .thenReturn(Flux.empty());
+        when(userRepository.countAllByUserType(User.UserType.USER))
+                .thenReturn(Mono.just(0L));
+
+        StepVerifier.create(userService.getUserList(User.UserType.USER, 0, 20))
+                .assertNext(page -> {
+                    assertEquals(0, page.getCurrentPage());
+                    assertEquals(0, page.getNumberOfElements());
+                    assertEquals(0, page.getTotalElements());
+                    assertEquals(0, page.getContent().size());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getUserList() {
+        UUID userId1 = UUID.randomUUID();
+        UUID userId2 = UUID.randomUUID();
+        when(userRepository.findAllByUserType(User.UserType.USER, PageRequest.of(0, 20)))
+                .thenReturn(Flux.just(new User(
+                                userId1,
+                                "dorian@gray.com",
+                                "Gray",
+                                "Dorian",
+                                "password",
+                                User.UserType.USER,
+                                Instant.now(),
+                                Instant.now(),
+                                1L,
+                                true
+                        ),
+                        new User(
+                                userId2,
+                                "john@doe.com",
+                                "Doe",
+                                "John",
+                                "password",
+                                User.UserType.ADMIN,
+                                Instant.now(),
+                                Instant.now(),
+                                1L,
+                                true
+                        )));
+        when(userRepository.countAllByUserType(User.UserType.USER))
+                .thenReturn(Mono.just(2L));
+
+        StepVerifier.create(userService.getUserList(User.UserType.USER, 0, 20))
+                .assertNext(page -> {
+                    assertEquals(0, page.getCurrentPage());
+                    assertEquals(2, page.getNumberOfElements());
+                    assertEquals(2, page.getTotalElements());
+                    assertEquals(2, page.getContent().size());
+                    var emails = page.getContent().stream().map(UserView::getEmail).toList();
+                    assertTrue(emails.containsAll(List.of("dorian@gray.com", "john@doe.com")));
+                })
+                .verifyComplete();
     }
 }
