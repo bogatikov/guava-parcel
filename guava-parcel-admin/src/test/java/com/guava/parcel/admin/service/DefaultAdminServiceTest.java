@@ -9,8 +9,10 @@ import com.guava.parcel.admin.ext.request.ChangeOrderStatusRequest;
 import com.guava.parcel.admin.ext.request.CreateUserRequest;
 import com.guava.parcel.admin.ext.request.SignInRequest;
 import com.guava.parcel.admin.ext.response.OrderResponse;
+import com.guava.parcel.admin.ext.response.OrderShortResponse;
 import com.guava.parcel.admin.ext.response.SignInResponse;
 import com.guava.parcel.admin.ext.response.UserResponse;
+import com.guava.parcel.admin.model.Page;
 import com.guava.parcel.admin.model.Status;
 import com.guava.parcel.admin.model.UserType;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +22,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -104,7 +107,25 @@ class DefaultAdminServiceTest {
 
     @Test
     void getOrders() {
-        // TODO: 31.03.2023
+        when(parcelDeliveryApi.getOrders(Status.NEW, 0, 20))
+                .thenReturn(
+                        Mono.just(
+                                new Page<>(
+                                        List.of(new OrderShortResponse(UUID.randomUUID(), UUID.randomUUID(), Status.NEW, null, Instant.now())),
+                                        0,
+                                        1L,
+                                        1
+                                )
+                        )
+                );
+
+        StepVerifier.create(defaultAdminService.getOrders(Status.NEW, 0, 20))
+                .assertNext(page -> {
+                    assertEquals(1, page.getTotalElements());
+                    assertEquals(1, page.getNumberOfElements());
+                    assertEquals(0, page.getCurrentPage());
+                })
+                .verifyComplete();
     }
 
     @Test
