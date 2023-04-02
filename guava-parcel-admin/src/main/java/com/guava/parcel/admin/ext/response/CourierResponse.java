@@ -1,4 +1,5 @@
-package com.guava.parcel.admin.dto.view;
+package com.guava.parcel.admin.ext.response;
+
 
 import com.guava.parcel.admin.model.Status;
 import lombok.AllArgsConstructor;
@@ -12,7 +13,7 @@ import java.util.Map;
 @NoArgsConstructor
 @Data
 @ToString
-public class CourierView {
+public class CourierResponse {
     private String lastName;
     private String firstName;
     private Map<Status, Integer> orderStats;

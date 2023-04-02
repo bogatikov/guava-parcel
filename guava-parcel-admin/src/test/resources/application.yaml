@@ -15,6 +15,9 @@ clients:
   delivery-client:
     name: "delivery-client"
     url: "http://localhost:9999/guava-delivery"
+  courier-client:
+    name: "guava-parcel-courier"
+    url: "http://localhost:9999/guava-courier"
 
 kafka:
   bootstrap-servers:

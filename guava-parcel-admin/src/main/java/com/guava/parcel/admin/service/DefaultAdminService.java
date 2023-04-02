@@ -12,6 +12,7 @@ import com.guava.parcel.admin.dto.view.SignInView;
 import com.guava.parcel.admin.dto.view.UserView;
 import com.guava.parcel.admin.event.CourierCoordinateEvent;
 import com.guava.parcel.admin.ext.AuthApi;
+import com.guava.parcel.admin.ext.CourierApi;
 import com.guava.parcel.admin.ext.ParcelDeliveryApi;
 import com.guava.parcel.admin.ext.request.ChangeOrderStatusRequest;
 import com.guava.parcel.admin.ext.request.CreateUserRequest;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DefaultAdminService implements AdminService {
 
+    private final CourierApi courierApi;
     private final ParcelDeliveryApi parcelDeliveryApi;
     private final AuthApi authApi;
     private final ModelMapper mapper;
@@ -88,7 +90,8 @@ public class DefaultAdminService implements AdminService {
 
     @Override
     public Mono<Page<CourierView>> getCouriers(Integer page, Integer size) {
-        return authApi.getUserList(UserType.COURIER, page, size)
+        // TODO: 02.04.2023 get courier list
+        return courierApi.getCourierList(page, size)
                 .map(userResponsePage -> {
                     List<CourierView> courierViewList = userResponsePage.getContent().stream()
                             .map(userResponse -> mapper.map(userResponse, CourierView.class))
@@ -97,7 +100,8 @@ public class DefaultAdminService implements AdminService {
                             userResponsePage.getCurrentPage(),
                             userResponsePage.getTotalElements(),
                             userResponsePage.getNumberOfElements());
-                });
+                })
+                .switchIfEmpty(Mono.just(new Page<>(List.of(), 0, 0L, 0)));
     }
 
     @Override

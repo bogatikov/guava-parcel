@@ -5,13 +5,16 @@ import com.guava.parcel.admin.dto.form.CreateCourierForm;
 import com.guava.parcel.admin.dto.form.SetCourierForm;
 import com.guava.parcel.admin.dto.form.SignInForm;
 import com.guava.parcel.admin.dto.view.CoordinateView;
+import com.guava.parcel.admin.dto.view.CourierView;
 import com.guava.parcel.admin.event.CourierCoordinateEvent;
 import com.guava.parcel.admin.ext.AuthApi;
+import com.guava.parcel.admin.ext.CourierApi;
 import com.guava.parcel.admin.ext.ParcelDeliveryApi;
 import com.guava.parcel.admin.ext.request.ChangeOrderStatusRequest;
 import com.guava.parcel.admin.ext.request.CreateUserRequest;
 import com.guava.parcel.admin.ext.request.SetCourierRequest;
 import com.guava.parcel.admin.ext.request.SignInRequest;
+import com.guava.parcel.admin.ext.response.CourierResponse;
 import com.guava.parcel.admin.ext.response.OrderResponse;
 import com.guava.parcel.admin.ext.response.OrderShortResponse;
 import com.guava.parcel.admin.ext.response.SignInResponse;
@@ -29,14 +32,17 @@ import reactor.test.StepVerifier;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class DefaultAdminServiceTest {
 
+    private CourierApi courierApi;
     private ParcelDeliveryApi parcelDeliveryApi;
     private AuthApi authApi;
     private CourierCoordinateStream coordinateStream;
@@ -46,10 +52,12 @@ class DefaultAdminServiceTest {
 
     @BeforeEach
     void setUp() {
+        courierApi = mock(CourierApi.class);
         parcelDeliveryApi = mock(ParcelDeliveryApi.class);
         authApi = mock(AuthApi.class);
         coordinateStream = mock(CourierCoordinateStream.class);
         defaultAdminService = new DefaultAdminService(
+                courierApi,
                 parcelDeliveryApi,
                 authApi,
                 mapper,
@@ -165,8 +173,58 @@ class DefaultAdminServiceTest {
     }
 
     @Test
+    void getCouriersEmptyPage() {
+        when(courierApi.getCourierList(0, 20))
+                .thenReturn(Mono.empty());
+
+        StepVerifier.create(defaultAdminService.getCouriers(0, 20))
+                .assertNext(page -> {
+                    assertEquals(0, page.getCurrentPage());
+                    assertEquals(0, page.getTotalElements());
+                    assertEquals(0, page.getNumberOfElements());
+                    assertEquals(0, page.getContent().size());
+                })
+                .verifyComplete();
+    }
+
+    @Test
     void getCouriers() {
-        // TODO: 31.03.2023
+        when(courierApi.getCourierList(0, 20))
+                .thenReturn(
+                        Mono.just(
+                                new Page<>(
+                                        List.of(new CourierResponse(
+                                                        "Doe",
+                                                        "John",
+                                                        Map.of(Status.NEW, 1, Status.FINISHED, 2)
+                                                )
+                                        ),
+                                        0,
+                                        1L,
+                                        1
+                                )
+                        )
+                );
+
+        StepVerifier.create(defaultAdminService.getCouriers(0, 20))
+                .assertNext(page -> {
+                    assertEquals(0, page.getCurrentPage());
+                    assertEquals(1, page.getTotalElements());
+                    assertEquals(1, page.getNumberOfElements());
+                    assertEquals(1, page.getContent().size());
+                    CourierView courierView = page.getContent().get(0);
+                    assertEquals("Doe", courierView.getLastName());
+                    assertEquals("John", courierView.getFirstName());
+                    assertEquals(2, courierView.getOrderStats().size());
+                    assertEquals(1, courierView.getOrderStats().get(Status.NEW));
+                    assertEquals(2, courierView.getOrderStats().get(Status.FINISHED));
+
+                    assertFalse(courierView.getOrderStats().containsKey(Status.CANCELED));
+                    assertFalse(courierView.getOrderStats().containsKey(Status.WAITING_FOR_COURIER));
+                    assertFalse(courierView.getOrderStats().containsKey(Status.DELIVERING));
+
+                })
+                .verifyComplete();
     }
 
     @Test
