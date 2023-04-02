@@ -4,6 +4,7 @@ import com.guava.parcel.courier.dto.form.ChangeOrderStatusForm;
 import com.guava.parcel.courier.dto.form.CoordinateForm;
 import com.guava.parcel.courier.dto.form.SignInForm;
 import com.guava.parcel.courier.dto.view.CoordinateView;
+import com.guava.parcel.courier.dto.view.CourierView;
 import com.guava.parcel.courier.dto.view.OrderShortView;
 import com.guava.parcel.courier.dto.view.OrderView;
 import com.guava.parcel.courier.dto.view.SignInView;
@@ -54,5 +55,13 @@ public class CourierRestController {
     @PostMapping("courier/coordinate")
     public Mono<CoordinateView> sendCourierCoordinates(@RequestBody @Valid CoordinateForm coordinateForm) {
         return courierService.sendCourierCoordinates(coordinateForm);
+    }
+
+    @GetMapping("courier/list")
+    public Mono<Page<CourierView>> getCourierList(
+            @Valid @NotNull @RequestParam("page") Integer page,
+            @Valid @NotNull @RequestParam("size") Integer size
+    ) {
+        return courierService.getCourierList(page, size);
     }
 }

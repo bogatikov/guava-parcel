@@ -2,8 +2,10 @@ package com.guava.parcel.courier.ext;
 
 
 import com.guava.parcel.courier.ext.request.ChangeOrderStatusRequest;
+import com.guava.parcel.courier.ext.response.CourierStatsResponse;
 import com.guava.parcel.courier.ext.response.OrderResponse;
 import com.guava.parcel.courier.ext.response.OrderShortResponse;
+import com.guava.parcel.courier.ext.response.UserResponse;
 import com.guava.parcel.courier.model.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,4 +32,7 @@ public interface ParcelDeliveryApi {
 
     @GetMapping("order/{orderId}")
     Mono<OrderResponse> getOrder(@PathVariable UUID orderId);
+
+    @GetMapping("order/courier/{courierId}/stats")
+    Mono<CourierStatsResponse> getCourierStats(@PathVariable UUID courierId);
 }

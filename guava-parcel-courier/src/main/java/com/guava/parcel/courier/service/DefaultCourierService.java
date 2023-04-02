@@ -4,6 +4,8 @@ import com.guava.parcel.courier.dto.form.ChangeOrderStatusForm;
 import com.guava.parcel.courier.dto.form.CoordinateForm;
 import com.guava.parcel.courier.dto.form.SignInForm;
 import com.guava.parcel.courier.dto.view.CoordinateView;
+import com.guava.parcel.courier.dto.view.CourierStatsView;
+import com.guava.parcel.courier.dto.view.CourierView;
 import com.guava.parcel.courier.dto.view.OrderShortView;
 import com.guava.parcel.courier.dto.view.OrderView;
 import com.guava.parcel.courier.dto.view.SignInView;
@@ -13,7 +15,9 @@ import com.guava.parcel.courier.ext.AuthApi;
 import com.guava.parcel.courier.ext.ParcelDeliveryApi;
 import com.guava.parcel.courier.ext.request.ChangeOrderStatusRequest;
 import com.guava.parcel.courier.ext.request.SignInRequest;
+import com.guava.parcel.courier.ext.response.UserResponse;
 import com.guava.parcel.courier.model.Page;
+import com.guava.parcel.courier.model.UserType;
 import com.guava.parcel.courier.service.api.BroadcastService;
 import com.guava.parcel.courier.service.api.CourierService;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +25,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -87,6 +93,31 @@ public class DefaultCourierService implements CourierService {
                                         coordinateForm.latitude())
                         )
                         .thenReturn(new CoordinateView(courierId, coordinateForm.longitude(), coordinateForm.latitude())));
+    }
+
+    @Override
+    public Mono<Page<CourierView>> getCourierList(Integer page, Integer size) {
+        //todo test
+        return authApi.getUserList(UserType.COURIER, page, size)
+                .flatMap(this::handleCouriersPage);
+    }
+
+    private Mono<Page<CourierView>> handleCouriersPage(Page<UserResponse> page) {
+        return retrieveCouriersStats(page.getContent())
+                .map(courierViews -> new Page<>(courierViews, page.getCurrentPage(), page.getTotalElements(), page.getNumberOfElements()));
+    }
+
+    private Mono<List<CourierView>> retrieveCouriersStats(List<UserResponse> content) {
+        return Flux.fromIterable(content)
+                .flatMap(courier -> retrieveCourierStats(courier)
+                        .map(courierStatsView -> new CourierView(courier.getLastName(), courier.getFirstName(), courierStatsView.getStats()))
+                )
+                .collectList();
+    }
+
+    private Mono<CourierStatsView> retrieveCourierStats(UserResponse courier) {
+        return deliveryApi.getCourierStats(courier.getId())
+                .map(courierStatsResponse -> mapper.map(courierStatsResponse, CourierStatsView.class));
     }
 
     private Mono<UUID> resolveCourierId() {
