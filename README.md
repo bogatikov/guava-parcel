@@ -2,7 +2,7 @@
 Microservices system for order delivery.
 
 ### Architecture schema
-![img_1.png](img.png)
+![Architecture schema](img.png)
 
 ### Deployment instructions
 
@@ -11,4 +11,10 @@ In the root directory of project run
 <code> docker-compose up -f docker/guava.yaml </code>
 
 ### OpenAPI
-TODO
+<code>openapi/openapi.yaml</code>
+
+### Courier coordinate listen flow
+![courier-coordinate-listen.png](courier-coordinate-listen.png)
+
+### Courier coordinate produce flow
+![courier-coordinate-produce.png](courier-coordinate-produce.png)
