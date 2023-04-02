@@ -43,7 +43,7 @@ public class DefaultUserService implements UserService {
 
     @Override
     public Mono<SignInView> signIn(SignInForm signInForm) {
-        return authApi.signIn(mapper.map(signInForm, SignInRequest.class))
+        return authApi.signIn(new SignInRequest(signInForm.email(), signInForm.password()))
                 .map(signInResponse -> mapper.map(signInResponse, SignInView.class));
     }
 
@@ -65,7 +65,7 @@ public class DefaultUserService implements UserService {
     public Mono<OrderView> changeDestination(ChangeDestinationForm changeDestinationForm) {
         return getOrder(changeDestinationForm.orderId())
                 .flatMap(order -> deliveryApi.changeDestination(new ChangeDestinationRequest(
-                                        order.id(),
+                                        order.getId(),
                                         changeDestinationForm.destinationAddress()
                                 )
                         )
@@ -84,7 +84,7 @@ public class DefaultUserService implements UserService {
                 .filter(tuple -> {
                     UUID userId = tuple.getT1();
                     OrderResponse orderResponse = tuple.getT2();
-                    return orderResponse.userId().equals(userId);
+                    return orderResponse.getUserId().equals(userId);
                 })
                 .map(tuple -> mapper.map(tuple.getT2(), OrderView.class))
                 .switchIfEmpty(Mono.error(new EntityNotFound("Order not found")));
