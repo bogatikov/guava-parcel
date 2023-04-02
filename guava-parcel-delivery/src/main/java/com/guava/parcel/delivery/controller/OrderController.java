@@ -61,13 +61,11 @@ public class OrderController {
     }
 
     @PostMapping("create")
-    // todo test
     public Mono<OrderView> createOrder(@RequestBody @Valid CreateOrderForm createOrderForm) {
         return orderService.createOrder(createOrderForm);
     }
 
     @PostMapping("changeDestination")
-    // todo test
     public Mono<OrderView> changeDestination(@RequestBody @Valid ChangeDestinationForm changeDestinationForm) {
         return orderService.changeDestination(changeDestinationForm);
     }

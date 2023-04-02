@@ -97,9 +97,9 @@ public class DefaultCourierService implements CourierService {
 
     @Override
     public Mono<Page<CourierView>> getCourierList(Integer page, Integer size) {
-        //todo test
         return authApi.getUserList(UserType.COURIER, page, size)
-                .flatMap(this::handleCouriersPage);
+                .flatMap(this::handleCouriersPage)
+                .switchIfEmpty(Mono.just(new Page<>(List.of(), page, 0L, 0)));
     }
 
     private Mono<Page<CourierView>> handleCouriersPage(Page<UserResponse> page) {

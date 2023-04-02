@@ -3,17 +3,21 @@ package com.guava.parcel.courier.service;
 import com.guava.parcel.courier.dto.form.ChangeOrderStatusForm;
 import com.guava.parcel.courier.dto.form.CoordinateForm;
 import com.guava.parcel.courier.dto.form.SignInForm;
+import com.guava.parcel.courier.dto.view.CourierView;
 import com.guava.parcel.courier.error.EntityNotFound;
 import com.guava.parcel.courier.event.CourierCoordinateEvent;
 import com.guava.parcel.courier.ext.AuthApi;
 import com.guava.parcel.courier.ext.ParcelDeliveryApi;
 import com.guava.parcel.courier.ext.request.ChangeOrderStatusRequest;
 import com.guava.parcel.courier.ext.request.SignInRequest;
+import com.guava.parcel.courier.ext.response.CourierStatsResponse;
 import com.guava.parcel.courier.ext.response.OrderResponse;
 import com.guava.parcel.courier.ext.response.OrderShortResponse;
 import com.guava.parcel.courier.ext.response.SignInResponse;
+import com.guava.parcel.courier.ext.response.UserResponse;
 import com.guava.parcel.courier.model.Page;
 import com.guava.parcel.courier.model.Status;
+import com.guava.parcel.courier.model.UserType;
 import com.guava.parcel.courier.service.api.BroadcastService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,9 +31,11 @@ import reactor.util.context.Context;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -248,6 +254,62 @@ class DefaultCourierServiceTest {
 
         verify(broadcastService, times(1))
                 .broadcastCourierCoordinateEvent(new CourierCoordinateEvent(courierId, longitude, latitude));
+    }
+
+    @Test
+    void getCourierListEmptyPage() {
+        when(authApi.getUserList(UserType.COURIER, 0, 20))
+                .thenReturn(Mono.empty());
+        StepVerifier.create(defaultCourierService.getCourierList(0, 20))
+                .assertNext(page -> {
+                    assertEquals(0, page.getCurrentPage());
+                    assertEquals(0, page.getTotalElements());
+                    assertEquals(0, page.getNumberOfElements());
+                    assertEquals(0, page.getContent().size());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getCourierList() {
+        UUID courierId = UUID.randomUUID();
+        when(authApi.getUserList(UserType.COURIER, 0, 20))
+                .thenReturn(
+                        Mono.just(new Page<>(
+                                List.of(new UserResponse(
+                                        courierId,
+                                        "Doe",
+                                        "John",
+                                        "john@doe.com",
+                                        UserType.COURIER
+                                )),
+                                0,
+                                1L,
+                                1
+                        ))
+                );
+
+        when(deliveryApi.getCourierStats(courierId))
+                .thenReturn(Mono.just(new CourierStatsResponse(courierId, Map.of(Status.NEW, 3, Status.FINISHED, 4))));
+
+        StepVerifier.create(defaultCourierService.getCourierList(0, 20))
+                .assertNext(page -> {
+                    assertEquals(0, page.getCurrentPage());
+                    assertEquals(1L, page.getTotalElements());
+                    assertEquals(1, page.getNumberOfElements());
+                    assertEquals(1, page.getContent().size());
+
+                    CourierView courierView = page.getContent().get(0);
+                    assertEquals("Doe", courierView.getLastName());
+                    assertEquals("John", courierView.getFirstName());
+                    assertEquals(2, courierView.getOrderStats().size());
+
+                    assertTrue(courierView.getOrderStats().containsKey(Status.NEW));
+                    assertTrue(courierView.getOrderStats().containsKey(Status.FINISHED));
+                    assertEquals(3, courierView.getOrderStats().get(Status.NEW));
+                    assertEquals(4, courierView.getOrderStats().get(Status.FINISHED));
+                })
+                .verifyComplete();
     }
 
     private Context mockAndGetSecurityContextWithPrincipal(UUID any) {
