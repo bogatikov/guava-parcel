@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -183,22 +184,58 @@ class DefaultOrderServiceTest {
 
     @Test
     void cancelOrder() {
+        // TODO: 02.04.2023
     }
 
     @Test
     void changeDestination() {
+        // TODO: 02.04.2023
     }
 
     @Test
     void getOrdersByStatusShouldReturnEmptyPage() {
-
+        // TODO: 02.04.2023
     }
 
     @Test
     void changeOrderStatus() {
+        // TODO: 02.04.2023
     }
 
     @Test
     void setCourier() {
+        // TODO: 02.04.2023
+    }
+
+    @Test
+    void getCourierStats() {
+        UUID courierId = UUID.randomUUID();
+        when(customOrderRepository.getCourierStatsByCourierId(courierId))
+                .thenReturn(Mono.just(Map.of(Order.Status.NEW, 2, Order.Status.FINISHED, 3)));
+
+        StepVerifier.create(orderService.getCourierStats(courierId))
+                .assertNext(courierStatsView -> {
+                    assertEquals(courierId, courierStatsView.getCourierId());
+                    assertNotNull(courierStatsView.getStats());
+                    assertNotNull(courierStatsView.getStats().get(Order.Status.NEW));
+                    assertNotNull(courierStatsView.getStats().get(Order.Status.FINISHED));
+                    assertEquals(2, courierStatsView.getStats().get(Order.Status.NEW));
+                    assertEquals(3, courierStatsView.getStats().get(Order.Status.FINISHED));
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getCourierStatsWithNoOrders() {
+        UUID courierId = UUID.randomUUID();
+        when(customOrderRepository.getCourierStatsByCourierId(courierId))
+                .thenReturn(Mono.empty());
+
+        StepVerifier.create(orderService.getCourierStats(courierId))
+                .assertNext(courierStatsView -> {
+                    assertEquals(courierId, courierStatsView.getCourierId());
+                    assertNotNull(courierStatsView.getStats());
+                })
+                .verifyComplete();
     }
 }

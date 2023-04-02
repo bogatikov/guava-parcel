@@ -5,6 +5,7 @@ import com.guava.parcel.delivery.dto.form.ChangeDestinationForm;
 import com.guava.parcel.delivery.dto.form.ChangeOrderStatusForm;
 import com.guava.parcel.delivery.dto.form.CreateOrderForm;
 import com.guava.parcel.delivery.dto.form.SetCourierForm;
+import com.guava.parcel.delivery.dto.view.CourierStatsView;
 import com.guava.parcel.delivery.dto.view.OrderShortView;
 import com.guava.parcel.delivery.dto.view.OrderView;
 import com.guava.parcel.delivery.error.EntityNotFound;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -113,6 +115,13 @@ public class DefaultOrderService implements OrderService {
                 .doOnNext(order -> order.setCourierId(setCourierForm.courierId()))
                 .flatMap(orderRepository::save)
                 .map(this::mapOrderToOrderView);
+    }
+
+    @Override
+    public Mono<CourierStatsView> getCourierStats(UUID courierId) {
+        return customOrderRepository.getCourierStatsByCourierId(courierId)
+                .map(stats -> new CourierStatsView(courierId, stats))
+                .switchIfEmpty(Mono.just(new CourierStatsView(courierId, Map.of())));
     }
 
     private OrderView mapOrderToOrderView(Order order) {

@@ -5,6 +5,7 @@ import com.guava.parcel.delivery.dto.form.ChangeDestinationForm;
 import com.guava.parcel.delivery.dto.form.ChangeOrderStatusForm;
 import com.guava.parcel.delivery.dto.form.CreateOrderForm;
 import com.guava.parcel.delivery.dto.form.SetCourierForm;
+import com.guava.parcel.delivery.dto.view.CourierStatsView;
 import com.guava.parcel.delivery.dto.view.OrderShortView;
 import com.guava.parcel.delivery.dto.view.OrderView;
 import com.guava.parcel.delivery.model.Page;
@@ -29,4 +30,6 @@ public interface OrderService {
     Mono<Page<OrderShortView>> getOrders(OrderFilter orderFilter, @NonNull Integer page, @NonNull Integer size);
 
     Mono<OrderView> setCourier(SetCourierForm setCourierForm);
+
+    Mono<CourierStatsView> getCourierStats(UUID courierId);
 }

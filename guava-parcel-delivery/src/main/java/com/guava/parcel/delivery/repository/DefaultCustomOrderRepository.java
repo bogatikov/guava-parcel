@@ -14,11 +14,17 @@ import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
 public class DefaultCustomOrderRepository implements CustomOrderRepository {
     private final R2dbcEntityTemplate entityTemplate;
+
+    private static final String STATS_QUERY = "select o.status, count(*) as cnt from orders o where o.courier_id = :courierId group by status;";
 
     @Override
     public Mono<Page<Order>> getOrdersByFilter(OrderFilter orderFilter, Integer page, Integer size) {
@@ -27,6 +33,20 @@ public class DefaultCustomOrderRepository implements CustomOrderRepository {
                 .collectList()
                 .zipWith(entityTemplate.count(query, Order.class))
                 .map(tuple -> new Page<>(tuple.getT1(), page, tuple.getT2(), tuple.getT1().size()));
+    }
+
+    @Override
+    public Mono<Map<Order.Status, Integer>> getCourierStatsByCourierId(UUID courierId) {
+        return entityTemplate.getDatabaseClient()
+                .sql(STATS_QUERY)
+                .bind("courierId", courierId)
+                .map(row -> new OrderStatsProjection(
+                        Order.Status.valueOf(Objects.requireNonNull(row.get(0)).toString()),
+                        row.get(1, Integer.class))
+                )
+                .all()
+                .collectList()
+                .map(stats -> stats.stream().collect(Collectors.toMap(OrderStatsProjection::getStatus, OrderStatsProjection::getCnt)));
     }
 
     private Query buildQuery(OrderFilter orderFilter) {

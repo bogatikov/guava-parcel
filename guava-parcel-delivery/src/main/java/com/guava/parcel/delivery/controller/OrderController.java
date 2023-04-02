@@ -4,6 +4,7 @@ import com.guava.parcel.delivery.dto.form.ChangeDestinationForm;
 import com.guava.parcel.delivery.dto.form.ChangeOrderStatusForm;
 import com.guava.parcel.delivery.dto.form.CreateOrderForm;
 import com.guava.parcel.delivery.dto.form.SetCourierForm;
+import com.guava.parcel.delivery.dto.view.CourierStatsView;
 import com.guava.parcel.delivery.dto.view.OrderShortView;
 import com.guava.parcel.delivery.dto.view.OrderView;
 import com.guava.parcel.delivery.model.Order;
@@ -69,5 +70,10 @@ public class OrderController {
     // todo test
     public Mono<OrderView> changeDestination(@RequestBody @Valid ChangeDestinationForm changeDestinationForm) {
         return orderService.changeDestination(changeDestinationForm);
+    }
+
+    @GetMapping("courier/{courierId}/stats")
+    public Mono<CourierStatsView> getCourierStats(@PathVariable UUID courierId) {
+        return orderService.getCourierStats(courierId);
     }
 }

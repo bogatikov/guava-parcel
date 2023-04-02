@@ -14,8 +14,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class OrderRepositoryIT extends BaseIT {
@@ -190,6 +189,39 @@ class OrderRepositoryIT extends BaseIT {
                     assertEquals(0, page.getCurrentPage());
                     assertEquals(3, page.getNumberOfElements());
                     assertEquals(5, page.getTotalElements());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getCourierStatsByCourierId() {
+        UUID courierId = UUID.randomUUID();
+        Order canceledOrder1 = TestOrders.canceledOrder1;
+        Order canceledOrder2 = TestOrders.canceledOrder2;
+        Order newOrder1 = TestOrders.newOrder1;
+        canceledOrder1.setCourierId(courierId);
+        canceledOrder2.setCourierId(courierId);
+        newOrder1.setCourierId(courierId);
+
+        orderRepository.saveAll(List.of(canceledOrder1, canceledOrder2, newOrder1)).blockLast();
+
+        StepVerifier.create(customOrderRepository.getCourierStatsByCourierId(courierId))
+                .assertNext(statusIntegerMap -> {
+                    assertTrue(statusIntegerMap.containsKey(Order.Status.CANCELED));
+                    assertTrue(statusIntegerMap.containsKey(Order.Status.NEW));
+                    assertEquals(2, statusIntegerMap.get(Order.Status.CANCELED));
+                    assertEquals(1, statusIntegerMap.get(Order.Status.NEW));
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getCourierStatsByCourierIdWithNoOrders() {
+        UUID courierId = UUID.randomUUID();
+
+        StepVerifier.create(customOrderRepository.getCourierStatsByCourierId(courierId))
+                .assertNext(statusIntegerMap -> {
+                    assertEquals(0, statusIntegerMap.size());
                 })
                 .verifyComplete();
     }

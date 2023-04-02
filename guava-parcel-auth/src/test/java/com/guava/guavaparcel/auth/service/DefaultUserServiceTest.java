@@ -229,6 +229,8 @@ class DefaultUserServiceTest {
                     assertEquals(2, page.getContent().size());
                     var emails = page.getContent().stream().map(UserView::getEmail).toList();
                     assertTrue(emails.containsAll(List.of("dorian@gray.com", "john@doe.com")));
+                    var ids = page.getContent().stream().map(UserView::getId).toList();
+                    assertTrue(ids.containsAll(List.of(userId1, userId2)));
                 })
                 .verifyComplete();
     }
