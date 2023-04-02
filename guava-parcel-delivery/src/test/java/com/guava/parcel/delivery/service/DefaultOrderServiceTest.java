@@ -2,10 +2,15 @@ package com.guava.parcel.delivery.service;
 
 import com.guava.parcel.delivery.dto.form.CancelOrderForm;
 import com.guava.parcel.delivery.dto.form.ChangeDestinationForm;
+import com.guava.parcel.delivery.dto.form.ChangeOrderStatusForm;
 import com.guava.parcel.delivery.dto.form.CreateOrderForm;
+import com.guava.parcel.delivery.dto.form.SetCourierForm;
+import com.guava.parcel.delivery.dto.view.OrderShortView;
 import com.guava.parcel.delivery.dto.view.OrderView;
 import com.guava.parcel.delivery.error.EntityNotFound;
 import com.guava.parcel.delivery.model.Order;
+import com.guava.parcel.delivery.model.Page;
+import com.guava.parcel.delivery.model.filter.OrderFilter;
 import com.guava.parcel.delivery.repository.CustomOrderRepository;
 import com.guava.parcel.delivery.repository.OrderRepository;
 import com.guava.parcel.delivery.service.api.OrderService;
@@ -16,6 +21,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -47,10 +53,10 @@ class DefaultOrderServiceTest {
                         userId)))
                 .assertNext(orderView -> {
                     assertNotNull(orderView);
-                    assertEquals("The 1st Avenue", orderView.sourceAddress());
-                    assertEquals("The 2nd Avenue", orderView.destinationAddress());
-                    assertEquals(Order.Status.NEW, orderView.status());
-                    assertNull(orderView.courierId());
+                    assertEquals("The 1st Avenue", orderView.getSourceAddress());
+                    assertEquals("The 2nd Avenue", orderView.getDestinationAddress());
+                    assertEquals(Order.Status.NEW, orderView.getStatus());
+                    assertNull(orderView.getCourierId());
                 })
                 .verifyComplete();
     }
@@ -135,10 +141,6 @@ class DefaultOrderServiceTest {
     }
 
     @Test
-    void getOrders() {
-    }
-
-    @Test
     void getOrderThrowExceptionWhenOrderDoesntExists() {
         UUID orderId = UUID.randomUUID();
         when(orderRepository.findById(orderId)).thenReturn(Mono.empty());
@@ -184,27 +186,202 @@ class DefaultOrderServiceTest {
 
     @Test
     void cancelOrder() {
-        // TODO: 02.04.2023
+        UUID orderId = UUID.randomUUID();
+        when(orderRepository.findById(orderId))
+                .thenReturn(Mono.just(new Order(
+                        orderId,
+                        "The 3d Avenue",
+                        "The 5th Avenue",
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        Order.Status.NEW,
+                        null,
+                        Instant.now(),
+                        1L,
+                        true
+                )));
+
+        when(orderRepository.save(any())).thenAnswer(answer -> Mono.just(answer.getArgument(0)));
+
+        StepVerifier.create(orderService.cancelOrder(new CancelOrderForm(orderId)))
+                .assertNext(orderView -> {
+                    assertEquals(orderId, orderView.getId());
+                    assertEquals(Order.Status.CANCELED, orderView.getStatus());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void cancelOrderOrderNotFound() {
+        UUID orderId = UUID.randomUUID();
+        when(orderRepository.findById(orderId))
+                .thenReturn(Mono.empty());
+
+        StepVerifier.create(orderService.cancelOrder(new CancelOrderForm(orderId)))
+                .verifyError(EntityNotFound.class);
     }
 
     @Test
     void changeDestination() {
-        // TODO: 02.04.2023
+        UUID orderId = UUID.randomUUID();
+        when(orderRepository.findById(orderId))
+                .thenReturn(Mono.just(new Order(
+                        orderId,
+                        "The 3d Avenue",
+                        "The 5th Avenue",
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        Order.Status.NEW,
+                        null,
+                        Instant.now(),
+                        1L,
+                        true
+                )));
+
+        when(orderRepository.save(any())).thenAnswer(answer -> Mono.just(answer.getArgument(0)));
+
+        StepVerifier.create(orderService.changeDestination(new ChangeDestinationForm(orderId, "Baker St.")))
+                .assertNext(orderView -> {
+                    assertEquals(orderId, orderView.getId());
+                    assertEquals("Baker St.", orderView.getDestinationAddress());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void changeDestinationOrderNotFound() {
+        UUID orderId = UUID.randomUUID();
+        when(orderRepository.findById(orderId))
+                .thenReturn(Mono.empty());
+
+        StepVerifier.create(orderService.changeDestination(new ChangeDestinationForm(orderId, "Baker St.")))
+                .verifyError(EntityNotFound.class);
     }
 
     @Test
     void getOrdersByStatusShouldReturnEmptyPage() {
-        // TODO: 02.04.2023
+        when(customOrderRepository.getOrdersByFilter(any(), any(), any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(orderService.getOrders(new OrderFilter(null, null, null), 0, 20))
+                .assertNext(page -> {
+                    assertEquals(0, page.getCurrentPage());
+                    assertEquals(0, page.getTotalElements());
+                    assertEquals(0, page.getNumberOfElements());
+                    assertEquals(0, page.getContent().size());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getOrdersByStatus() {
+        UUID orderId = UUID.randomUUID();
+        when(customOrderRepository.getOrdersByFilter(any(), any(), any())).thenReturn(Mono.just(new Page<>(List.of(
+                                new Order(
+                                        orderId,
+                                        "The 3d Avenue",
+                                        "The 5th Avenue",
+                                        UUID.randomUUID(),
+                                        UUID.randomUUID(),
+                                        Order.Status.NEW,
+                                        null,
+                                        Instant.now(),
+                                        1L,
+                                        true
+                                )
+                        ),
+                                0,
+                                1L,
+                                1
+                        )
+                )
+        );
+
+        StepVerifier.create(orderService.getOrders(new OrderFilter(null, null, null), 0, 20))
+                .assertNext(page -> {
+                    assertEquals(0, page.getCurrentPage());
+                    assertEquals(1, page.getTotalElements());
+                    assertEquals(1, page.getNumberOfElements());
+                    assertEquals(1, page.getContent().size());
+                    OrderShortView orderShortView = page.getContent().get(0);
+                    assertEquals(orderId, orderShortView.getId());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void changeOrderStatusOrderNotFound() {
+        UUID orderId = UUID.randomUUID();
+        when(orderRepository.findById(orderId))
+                .thenReturn(Mono.empty());
+
+        StepVerifier.create(orderService.changeOrderStatus(new ChangeOrderStatusForm(orderId, Order.Status.WAITING_FOR_COURIER)))
+                .verifyError(EntityNotFound.class);
     }
 
     @Test
     void changeOrderStatus() {
-        // TODO: 02.04.2023
+        UUID orderId = UUID.randomUUID();
+        when(orderRepository.findById(orderId))
+                .thenReturn(Mono.just(new Order(
+                        orderId,
+                        "The 3d Avenue",
+                        "The 5th Avenue",
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        Order.Status.NEW,
+                        null,
+                        Instant.now(),
+                        1L,
+                        true
+                )));
+
+        when(orderRepository.save(any())).thenAnswer(answer -> Mono.just(answer.getArgument(0)));
+
+        StepVerifier.create(orderService.changeOrderStatus(new ChangeOrderStatusForm(orderId, Order.Status.WAITING_FOR_COURIER)))
+                .assertNext(orderView -> {
+                    assertEquals(orderId, orderView.getId());
+                    assertEquals(Order.Status.WAITING_FOR_COURIER, orderView.getStatus());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void setCourierOrderNotFound() {
+        UUID orderId = UUID.randomUUID();
+        UUID courierId = UUID.randomUUID();
+        when(orderRepository.findById(orderId))
+                .thenReturn(Mono.empty());
+
+        StepVerifier.create(orderService.setCourier(new SetCourierForm(orderId, courierId)))
+                .verifyError(EntityNotFound.class);
     }
 
     @Test
     void setCourier() {
-        // TODO: 02.04.2023
+        UUID orderId = UUID.randomUUID();
+        UUID courierId = UUID.randomUUID();
+        when(orderRepository.findById(orderId))
+                .thenReturn(Mono.just(new Order(
+                                orderId,
+                                "The 3d Avenue",
+                                "The 5th Avenue",
+                                UUID.randomUUID(),
+                                null,
+                                Order.Status.NEW,
+                                null,
+                                Instant.now(),
+                                1L,
+                                true
+                        ))
+                );
+        when(orderRepository.save(any())).thenAnswer(answer -> Mono.just(answer.getArgument(0)));
+
+        StepVerifier.create(orderService.setCourier(new SetCourierForm(orderId, courierId)))
+                .assertNext(orderView -> {
+                    assertEquals(orderId, orderView.getId());
+                    assertEquals(courierId, orderView.getCourierId());
+                })
+                .verifyComplete();
     }
 
     @Test

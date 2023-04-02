@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -80,7 +81,8 @@ public class DefaultOrderService implements OrderService {
                                 orderPage.getTotalElements(),
                                 orderPage.getNumberOfElements()
                         )
-                );
+                )
+                .switchIfEmpty(Mono.just(new Page<>(List.of(), 0, 0L, 0)));
     }
 
     @Override
