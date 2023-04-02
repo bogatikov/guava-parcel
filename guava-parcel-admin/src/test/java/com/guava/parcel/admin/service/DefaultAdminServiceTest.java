@@ -4,6 +4,8 @@ import com.guava.parcel.admin.dto.form.ChangeOrderStatusForm;
 import com.guava.parcel.admin.dto.form.CreateCourierForm;
 import com.guava.parcel.admin.dto.form.SetCourierForm;
 import com.guava.parcel.admin.dto.form.SignInForm;
+import com.guava.parcel.admin.dto.view.CoordinateView;
+import com.guava.parcel.admin.event.CourierCoordinateEvent;
 import com.guava.parcel.admin.ext.AuthApi;
 import com.guava.parcel.admin.ext.ParcelDeliveryApi;
 import com.guava.parcel.admin.ext.request.ChangeOrderStatusRequest;
@@ -17,9 +19,11 @@ import com.guava.parcel.admin.ext.response.UserResponse;
 import com.guava.parcel.admin.model.Page;
 import com.guava.parcel.admin.model.Status;
 import com.guava.parcel.admin.model.UserType;
+import com.guava.parcel.admin.stream.CourierCoordinateStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -28,13 +32,15 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 class DefaultAdminServiceTest {
 
     private ParcelDeliveryApi parcelDeliveryApi;
     private AuthApi authApi;
+    private CourierCoordinateStream coordinateStream;
+
     private static final ModelMapper mapper = new ModelMapper();
     private DefaultAdminService defaultAdminService;
 
@@ -42,10 +48,12 @@ class DefaultAdminServiceTest {
     void setUp() {
         parcelDeliveryApi = mock(ParcelDeliveryApi.class);
         authApi = mock(AuthApi.class);
+        coordinateStream = mock(CourierCoordinateStream.class);
         defaultAdminService = new DefaultAdminService(
                 parcelDeliveryApi,
                 authApi,
-                mapper
+                mapper,
+                coordinateStream
         );
     }
 
@@ -185,11 +193,30 @@ class DefaultAdminServiceTest {
 
     @Test
     void subscribeCourierCoordinates() {
-        // TODO: 31.03.2023
+        UUID courierId1 = UUID.randomUUID();
+        UUID courierId2 = UUID.randomUUID();
+
+        when(coordinateStream.getStream()).thenReturn(
+                Flux.just(
+                        new CourierCoordinateEvent(courierId1, 1.0, 1.0),
+                        new CourierCoordinateEvent(courierId1, 2.0, 2.0),
+                        new CourierCoordinateEvent(courierId2, 3.0, 3.0)
+                )
+        );
+
+        StepVerifier.create(defaultAdminService.subscribeCourierCoordinates(courierId1))
+                .expectNext(new CoordinateView(courierId1, 1.0, 1.0))
+                .expectNext(new CoordinateView(courierId1, 2.0, 2.0))
+                .verifyComplete();
     }
 
     @Test
     void consumeCourierCoordinateEvent() {
-        // TODO: 31.03.2023
+        when(coordinateStream.publishToStream(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(defaultAdminService.consumeCourierCoordinateEvent(any()))
+                .verifyComplete();
+
+        verify(coordinateStream, times(1)).publishToStream(any());
     }
 }

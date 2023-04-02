@@ -23,6 +23,7 @@ import com.guava.parcel.admin.model.Page;
 import com.guava.parcel.admin.model.Status;
 import com.guava.parcel.admin.model.UserType;
 import com.guava.parcel.admin.service.api.AdminService;
+import com.guava.parcel.admin.stream.CourierCoordinateStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -30,7 +31,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
 
 import java.util.List;
 import java.util.UUID;
@@ -44,8 +44,8 @@ public class DefaultAdminService implements AdminService {
     private final ParcelDeliveryApi parcelDeliveryApi;
     private final AuthApi authApi;
     private final ModelMapper mapper;
+    private final CourierCoordinateStream coordinateStream;
 
-    private final Sinks.Many<CourierCoordinateEvent> courierCoordinateSink = Sinks.many().multicast().directBestEffort();
 
     @Override
     public Mono<SignInView> signIn(SignInForm signInForm) {
@@ -108,7 +108,7 @@ public class DefaultAdminService implements AdminService {
 
     @Override
     public Flux<CoordinateView> subscribeCourierCoordinates(UUID courierId) {
-        return courierCoordinateSink.asFlux()
+        return coordinateStream.getStream()
                 .filter(courierCoordinateEvent -> courierCoordinateEvent.courierId().equals(courierId))
                 .map((event) -> new CoordinateView(
                                 courierId,
@@ -120,8 +120,7 @@ public class DefaultAdminService implements AdminService {
 
     @Override
     public Mono<Void> consumeCourierCoordinateEvent(CourierCoordinateEvent courierCoordinateEvent) {
-        return Mono.fromCallable(() -> courierCoordinateSink.tryEmitNext(courierCoordinateEvent))
-                .then();
+        return coordinateStream.publishToStream(courierCoordinateEvent);
     }
 
     private OrderView mapOrderResponseToOrderView(OrderResponse orderResponse) {
