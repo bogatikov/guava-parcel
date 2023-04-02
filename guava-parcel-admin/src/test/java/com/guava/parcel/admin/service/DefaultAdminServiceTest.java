@@ -2,11 +2,13 @@ package com.guava.parcel.admin.service;
 
 import com.guava.parcel.admin.dto.form.ChangeOrderStatusForm;
 import com.guava.parcel.admin.dto.form.CreateCourierForm;
+import com.guava.parcel.admin.dto.form.SetCourierForm;
 import com.guava.parcel.admin.dto.form.SignInForm;
 import com.guava.parcel.admin.ext.AuthApi;
 import com.guava.parcel.admin.ext.ParcelDeliveryApi;
 import com.guava.parcel.admin.ext.request.ChangeOrderStatusRequest;
 import com.guava.parcel.admin.ext.request.CreateUserRequest;
+import com.guava.parcel.admin.ext.request.SetCourierRequest;
 import com.guava.parcel.admin.ext.request.SignInRequest;
 import com.guava.parcel.admin.ext.response.OrderResponse;
 import com.guava.parcel.admin.ext.response.OrderShortResponse;
@@ -130,7 +132,28 @@ class DefaultAdminServiceTest {
 
     @Test
     void setCourier() {
-        // TODO: 31.03.2023
+        UUID orderId = UUID.randomUUID();
+        UUID courierId = UUID.randomUUID();
+        when(parcelDeliveryApi.setCourier(new SetCourierRequest(orderId, courierId)))
+                .thenReturn(
+                        Mono.just(new OrderResponse(
+                                orderId,
+                                UUID.randomUUID(),
+                                courierId,
+                                "The 1th Avenue",
+                                "The 2nd Avenue",
+                                Status.NEW,
+                                null,
+                                Instant.now()
+                        ))
+                );
+
+        StepVerifier.create(defaultAdminService.setCourier(new SetCourierForm(orderId, courierId)))
+                .assertNext(orderView -> {
+                    assertEquals(orderId, orderView.getId());
+                    assertEquals(courierId, orderView.getCourierId());
+                })
+                .verifyComplete();
     }
 
     @Test
@@ -140,7 +163,24 @@ class DefaultAdminServiceTest {
 
     @Test
     void getOrder() {
-        // TODO: 31.03.2023
+        UUID orderId = UUID.randomUUID();
+        when(parcelDeliveryApi.getOrder(orderId))
+                .thenReturn(
+                        Mono.just(new OrderResponse(
+                                orderId,
+                                UUID.randomUUID(),
+                                UUID.randomUUID(),
+                                "The 1th Avenue",
+                                "The 2nd Avenue",
+                                Status.NEW,
+                                null,
+                                Instant.now()
+                        ))
+                );
+
+        StepVerifier.create(defaultAdminService.getOrder(orderId))
+                .assertNext(orderView -> assertEquals(orderId, orderView.getId()))
+                .verifyComplete();
     }
 
     @Test
