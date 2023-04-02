@@ -45,6 +45,51 @@ paths:
             'application/json':
               schema:
                 $ref: '#/components/schemas/OrderView'
+  /guava-parcel-admin/courier/list:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - guava-parcel-admin-service
+      operationId: getCourierList
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/PageCourierView'
+  /guava-parcel-admin/order/setCourier:
+    post:
+      tags:
+        - guava-parcel-admin-service
+      operationId: setCourier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetCourierForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/OrderView'
   /guava-parcel-admin/courier/create:
     post:
       security:
@@ -185,8 +230,6 @@ paths:
                 $ref: '#/components/schemas/SignInView'
   /guava-parcel-auth/user/create:
     post:
-      security:
-        - bearerAuth: [ ]
       tags:
         - guava-parcel-auth
       operationId: createUser
@@ -221,6 +264,58 @@ paths:
             'application/json':
               schema:
                 $ref: '#/components/schemas/TokenView'
+  /guava-parcel-auth/user/list:
+    get:
+      tags:
+        - guava-parcel-auth
+      operationId: getUserList
+      parameters:
+        - name: userType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - USER
+              - ADMIN
+              - COURIER
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/PageUserView'
+  /guava-parcel-delivery/order/create:
+    post:
+      tags:
+        - guava-parcel-delivery
+      operationId: createOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/OrderView'
   /guava-parcel-delivery/order/setCourier:
     post:
       tags:
@@ -257,6 +352,43 @@ paths:
             'application/json':
               schema:
                 $ref: '#/components/schemas/OrderView'
+  /guava-parcel-delivery/order/changeDestination:
+    post:
+      tags:
+        - guava-parcel-delivery
+      operationId: changeDestination
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeDestinationForm'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/OrderView'
+  /guava-parcel-delivery/order/courier/{courierId}/stats:
+    get:
+      tags:
+        - guava-parcel-delivery
+      operationId: getCourierStats
+      parameters:
+        - name: courierId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CourierStatsView'
   /guava-parcel-delivery/order/{orderId}:
     get:
       tags:
@@ -430,6 +562,31 @@ paths:
             'application/json':
               schema:
                 $ref: '#/components/schemas/PageOrderShortView'
+  /guava-parcel-courier/courier/list:
+    get:
+      tags:
+        - guava-parcel-courier
+      operationId: getOrders
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/PageCourierView'
   /guava-parcel-user/sign-up:
     post:
       tags:
@@ -694,6 +851,53 @@ components:
         numberOfElements:
           type: integer
           format: int32
+    PageCourierView:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourierView'
+        currentPage:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        numberOfElements:
+          type: integer
+          format: int32
+    PageUserView:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserView'
+        currentPage:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        numberOfElements:
+          type: integer
+          format: int32
+    CourierView:
+      type: object
+      properties:
+        lastName:
+          type: string
+        firstName:
+          type: string
+        orderStats:
+          type: string
+          enum:
+            - NEW
+            - WAITING_FOR_COURIER
+            - DELIVERING
+            - FINISHED
+            - CANCELED
     CoordinateView:
       type: object
       properties:
@@ -784,3 +988,14 @@ components:
       properties:
         token:
           type: string
+    CourierStatsView:
+      type: object
+      properties:
+        courierId:
+          type: string
+          format: uuid
+        stats:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32

@@ -38,18 +38,9 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    @GetMapping("order/list")
-    public Mono<Page<OrderShortView>> getOrders(
-            @RequestParam(value = "status", required = false) Status status,
-            @Valid @NotNull @RequestParam("page") Integer page,
-            @Valid @NotNull @RequestParam("size") Integer size
-    ) {
-        return adminService.getOrders(status, page, size);
-    }
-
-    @GetMapping("order/{orderId}")
-    public Mono<OrderView> getOrder(@Valid @NonNull @PathVariable UUID orderId) {
-        return adminService.getOrder(orderId);
+    @PostMapping("sign-in")
+    public Mono<SignInView> signIn(@Valid @RequestBody SignInForm signInForm) {
+        return adminService.signIn(signInForm);
     }
 
     @PostMapping("order/changeStatus")
@@ -62,9 +53,18 @@ public class AdminController {
         return adminService.createCourier(createCourierForm);
     }
 
-    @PostMapping("sign-in")
-    public Mono<SignInView> signIn(@Valid @RequestBody SignInForm signInForm) {
-        return adminService.signIn(signInForm);
+    @GetMapping("order/{orderId}")
+    public Mono<OrderView> getOrder(@Valid @NonNull @PathVariable UUID orderId) {
+        return adminService.getOrder(orderId);
+    }
+
+    @GetMapping("order/list")
+    public Mono<Page<OrderShortView>> getOrders(
+            @RequestParam(value = "status", required = false) Status status,
+            @Valid @NotNull @RequestParam("page") Integer page,
+            @Valid @NotNull @RequestParam("size") Integer size
+    ) {
+        return adminService.getOrders(status, page, size);
     }
 
     @GetMapping(value = "courier/coordinate/{courierId}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)

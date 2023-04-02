@@ -19,7 +19,9 @@ public class SecurityConfig {
 
     private static final String ACTUATOR_PATH_PATTERN = "/actuator/**";
     private static final String SIGN_IN_PATH_PATTERN = "/sign-in";
+    private static final String COURIER_LIST_PATH_PATTERN = "/courier/list";
     private static final String COURIER_AUTHORITY = "COURIER";
+    private static final String ADMIN_AUTHORITY = "ADMIN";
     private static final String SWAGGER_DOC = "/swagger-doc/**";
 
 
@@ -43,6 +45,7 @@ public class SecurityConfig {
                 .pathMatchers(SWAGGER_DOC).permitAll()
                 .pathMatchers(ACTUATOR_PATH_PATTERN).permitAll()
                 .pathMatchers(HttpMethod.POST, SIGN_IN_PATH_PATTERN).permitAll()
+                .pathMatchers(COURIER_LIST_PATH_PATTERN).hasAuthority(ADMIN_AUTHORITY)
                 .anyExchange().hasAuthority(COURIER_AUTHORITY)
                 .and()
                 .build();
