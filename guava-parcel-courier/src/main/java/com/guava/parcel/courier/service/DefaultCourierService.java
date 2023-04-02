@@ -79,17 +79,14 @@ public class DefaultCourierService implements CourierService {
     @Override
     public Mono<CoordinateView> sendCourierCoordinates(CoordinateForm coordinateForm) {
         return resolveCourierId()
-                .flatMap(courierId -> {
-                    //todo save courier coordinates
-                    return broadcastService
-                            .broadcastCourierCoordinateEvent(
-                                    new CourierCoordinateEvent(
-                                            courierId,
-                                            coordinateForm.longitude(),
-                                            coordinateForm.latitude())
-                            )
-                            .thenReturn(new CoordinateView(courierId, coordinateForm.longitude(), coordinateForm.latitude()));
-                });
+                .flatMap(courierId -> broadcastService
+                        .broadcastCourierCoordinateEvent(
+                                new CourierCoordinateEvent(
+                                        courierId,
+                                        coordinateForm.longitude(),
+                                        coordinateForm.latitude())
+                        )
+                        .thenReturn(new CoordinateView(courierId, coordinateForm.longitude(), coordinateForm.latitude())));
     }
 
     private Mono<UUID> resolveCourierId() {
