@@ -1,8 +1,10 @@
 package com.guava.parcel.courier.service;
 
 import com.guava.parcel.courier.dto.form.ChangeOrderStatusForm;
+import com.guava.parcel.courier.dto.form.CoordinateForm;
 import com.guava.parcel.courier.dto.form.SignInForm;
 import com.guava.parcel.courier.error.EntityNotFound;
+import com.guava.parcel.courier.event.CourierCoordinateEvent;
 import com.guava.parcel.courier.ext.AuthApi;
 import com.guava.parcel.courier.ext.ParcelDeliveryApi;
 import com.guava.parcel.courier.ext.request.ChangeOrderStatusRequest;
@@ -21,14 +23,15 @@ import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import reactor.util.context.Context;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 class DefaultCourierServiceTest {
 
@@ -70,10 +73,6 @@ class DefaultCourierServiceTest {
     @Test
     void getOrders() {
         var courierId = UUID.randomUUID();
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(courierId.toString());
 
         when(deliveryApi.getOrders(courierId, 0, 20))
                 .thenReturn(
@@ -89,7 +88,7 @@ class DefaultCourierServiceTest {
 
         StepVerifier.create(
                         defaultCourierService.getOrders(0, 20)
-                                .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(securityContext)))
+                                .contextWrite(mockAndGetSecurityContextWithPrincipal(courierId))
                 )
                 .assertNext(page -> {
                     assertEquals(1, page.getTotalElements());
@@ -103,10 +102,6 @@ class DefaultCourierServiceTest {
     void changeStatusWithOrderOfOtherCourier() {
         var orderId = UUID.randomUUID();
         var courierId = UUID.randomUUID();
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(courierId.toString());
 
         when(deliveryApi.getOrder(orderId)).thenReturn(
                 Mono.just(
@@ -124,10 +119,9 @@ class DefaultCourierServiceTest {
 
         StepVerifier.create(
                         defaultCourierService.changeStatus(new ChangeOrderStatusForm(orderId, Status.DELIVERING))
-                                .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(securityContext)))
+                                .contextWrite(mockAndGetSecurityContextWithPrincipal(courierId))
                 )
                 .verifyError(EntityNotFound.class);
-
     }
 
     @Test
@@ -136,11 +130,6 @@ class DefaultCourierServiceTest {
         var courierId = UUID.randomUUID();
         var userId = UUID.randomUUID();
         Instant createdAt = Instant.now();
-
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(courierId.toString());
 
         OrderResponse orderResponse = new OrderResponse(
                 orderId,
@@ -175,7 +164,7 @@ class DefaultCourierServiceTest {
         StepVerifier.create(
                         defaultCourierService
                                 .changeStatus(new ChangeOrderStatusForm(orderId, Status.DELIVERING))
-                                .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(securityContext)))
+                                .contextWrite(mockAndGetSecurityContextWithPrincipal(courierId))
                 )
                 .expectNextCount(1)
                 .verifyComplete();
@@ -183,6 +172,89 @@ class DefaultCourierServiceTest {
     }
 
     @Test
+    void getOrderOfOtherCourier() {
+        var orderId = UUID.randomUUID();
+        var courierId = UUID.randomUUID();
+
+        when(deliveryApi.getOrder(orderId)).thenReturn(
+                Mono.just(
+                        new OrderResponse(orderId,
+                                UUID.randomUUID(),
+                                UUID.randomUUID(),
+                                "Source",
+                                "Dest",
+                                Status.NEW,
+                                null,
+                                Instant.now()
+                        )
+                )
+        );
+
+        StepVerifier.create(
+                        defaultCourierService.getOrder(orderId)
+                                .contextWrite(mockAndGetSecurityContextWithPrincipal(courierId))
+                )
+                .verifyError(EntityNotFound.class);
+    }
+
+    @Test
     void getOrder() {
+        var orderId = UUID.randomUUID();
+        var courierId = UUID.randomUUID();
+
+        when(deliveryApi.getOrder(orderId)).thenReturn(
+                Mono.just(
+                        new OrderResponse(orderId,
+                                UUID.randomUUID(),
+                                courierId,
+                                "Source",
+                                "Dest",
+                                Status.NEW,
+                                null,
+                                Instant.now()
+                        )
+                )
+        );
+
+        StepVerifier.create(
+                        defaultCourierService.getOrder(orderId)
+                                .contextWrite(mockAndGetSecurityContextWithPrincipal(courierId))
+                )
+                .assertNext(orderView -> {
+                    assertEquals(orderId, orderView.getId());
+                    assertEquals(courierId, orderView.getCourierId());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void sendCourierCoordinates() {
+        UUID courierId = UUID.randomUUID();
+        when(broadcastService.broadcastCourierCoordinateEvent(any())).thenReturn(Mono.empty());
+
+        double longitude = 2.66;
+        double latitude = 3.75;
+        StepVerifier.create(
+                        defaultCourierService
+                                .sendCourierCoordinates(new CoordinateForm(longitude, latitude))
+                                .contextWrite(mockAndGetSecurityContextWithPrincipal(courierId))
+                )
+                .assertNext(coordinateView -> {
+                    assertEquals(longitude, coordinateView.longitude());
+                    assertEquals(latitude, coordinateView.latitude());
+                    assertEquals(courierId, coordinateView.courierId());
+                })
+                .verifyComplete();
+
+        verify(broadcastService, times(1))
+                .broadcastCourierCoordinateEvent(new CourierCoordinateEvent(courierId, longitude, latitude));
+    }
+
+    private Context mockAndGetSecurityContextWithPrincipal(UUID any) {
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(any.toString());
+        return ReactiveSecurityContextHolder.withSecurityContext(Mono.just(securityContext));
     }
 }

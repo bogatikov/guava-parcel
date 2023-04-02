@@ -53,14 +53,14 @@ class ParcelDeliveryApiIT extends BaseIT {
                         )
                 )
                 .assertNext(orderResponse -> {
-                    assertEquals("24f8b54f-0f4f-41a7-9f16-38f5419ee557", orderResponse.id().toString());
-                    assertEquals("14f8b54f-0f4f-41a7-9f16-38f5419ee557", orderResponse.userId().toString());
-                    assertEquals("34f8b54f-0f4f-41a7-9f16-38f5419ee557", orderResponse.courierId().toString());
-                    assertEquals("The 2d Avenue", orderResponse.sourceAddress());
-                    assertEquals("The 3d Avenue", orderResponse.destinationAddress());
-                    assertEquals(Status.FINISHED, orderResponse.status());
-                    assertNull(orderResponse.updatedAt());
-                    assertEquals(Instant.parse("2023-03-28T00:00:00.000Z"), orderResponse.createdAt());
+                    assertEquals("24f8b54f-0f4f-41a7-9f16-38f5419ee557", orderResponse.getId().toString());
+                    assertEquals("14f8b54f-0f4f-41a7-9f16-38f5419ee557", orderResponse.getUserId().toString());
+                    assertEquals("34f8b54f-0f4f-41a7-9f16-38f5419ee557", orderResponse.getCourierId().toString());
+                    assertEquals("The 2d Avenue", orderResponse.getSourceAddress());
+                    assertEquals("The 3d Avenue", orderResponse.getDestinationAddress());
+                    assertEquals(Status.FINISHED, orderResponse.getStatus());
+                    assertNull(orderResponse.getUpdatedAt());
+                    assertEquals(Instant.parse("2023-03-28T00:00:00.000Z"), orderResponse.getCreatedAt());
                 })
                 .verifyComplete();
     }
@@ -136,14 +136,14 @@ class ParcelDeliveryApiIT extends BaseIT {
         StepVerifier.create(parcelDeliveryApi.getOrder(UUID.fromString("24f8b54f-0f4f-41a7-9f16-38f5419ee557"))
                 )
                 .assertNext(orderResponse -> {
-                    assertEquals("24f8b54f-0f4f-41a7-9f16-38f5419ee557", orderResponse.id().toString());
-                    assertEquals("14f8b54f-0f4f-41a7-9f16-38f5419ee557", orderResponse.userId().toString());
-                    assertEquals("34f8b54f-0f4f-41a7-9f16-38f5419ee557", orderResponse.courierId().toString());
-                    assertEquals("The 2d Avenue", orderResponse.sourceAddress());
-                    assertEquals("The 3d Avenue", orderResponse.destinationAddress());
-                    assertEquals(Status.FINISHED, orderResponse.status());
-                    assertNull(orderResponse.updatedAt());
-                    assertEquals(Instant.parse("2023-03-28T00:00:00.000Z"), orderResponse.createdAt());
+                    assertEquals("24f8b54f-0f4f-41a7-9f16-38f5419ee557", orderResponse.getId().toString());
+                    assertEquals("14f8b54f-0f4f-41a7-9f16-38f5419ee557", orderResponse.getUserId().toString());
+                    assertEquals("34f8b54f-0f4f-41a7-9f16-38f5419ee557", orderResponse.getCourierId().toString());
+                    assertEquals("The 2d Avenue", orderResponse.getSourceAddress());
+                    assertEquals("The 3d Avenue", orderResponse.getDestinationAddress());
+                    assertEquals(Status.FINISHED, orderResponse.getStatus());
+                    assertNull(orderResponse.getUpdatedAt());
+                    assertEquals(Instant.parse("2023-03-28T00:00:00.000Z"), orderResponse.getCreatedAt());
                 })
                 .verifyComplete();
     }

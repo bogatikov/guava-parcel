@@ -60,7 +60,7 @@ public class DefaultCourierService implements CourierService {
     public Mono<OrderView> changeStatus(ChangeOrderStatusForm changeStatusForm) {
         return resolveCourierId()
                 .zipWith(deliveryApi.getOrder(changeStatusForm.orderId()))
-                .filter(tuple -> tuple.getT1().equals(tuple.getT2().courierId()))
+                .filter(tuple -> tuple.getT1().equals(tuple.getT2().getCourierId()))
                 .switchIfEmpty(Mono.error(new EntityNotFound("This courier can't change the order status")))
                 .flatMap(tuple -> deliveryApi.changeOrderStatus(new ChangeOrderStatusRequest(changeStatusForm.orderId(), changeStatusForm.status())))
                 .map(orderResponse -> mapper.map(orderResponse, OrderView.class));
@@ -70,7 +70,7 @@ public class DefaultCourierService implements CourierService {
     public Mono<OrderView> getOrder(UUID orderId) {
         return resolveCourierId()
                 .zipWith(deliveryApi.getOrder(orderId))
-                .filter(tuple -> tuple.getT1().equals(tuple.getT2().courierId()))
+                .filter(tuple -> tuple.getT1().equals(tuple.getT2().getCourierId()))
                 .switchIfEmpty(Mono.error(new EntityNotFound("This courier can't change the order status")))
                 .map(Tuple2::getT2)
                 .map(orderResponse -> mapper.map(orderResponse, OrderView.class));
@@ -78,7 +78,6 @@ public class DefaultCourierService implements CourierService {
 
     @Override
     public Mono<CoordinateView> sendCourierCoordinates(CoordinateForm coordinateForm) {
-        //todo test
         return resolveCourierId()
                 .flatMap(courierId -> {
                     //todo save courier coordinates
