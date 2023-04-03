@@ -1,13 +1,21 @@
 package com.guava.parcel.user.service;
 
+import com.guava.parcel.user.dto.form.CancelOrderForm;
+import com.guava.parcel.user.dto.form.ChangeDestinationForm;
 import com.guava.parcel.user.dto.form.CreateOrderForm;
 import com.guava.parcel.user.dto.form.SignInForm;
+import com.guava.parcel.user.dto.view.OrderShortView;
+import com.guava.parcel.user.error.EntityNotFound;
 import com.guava.parcel.user.ext.AuthApi;
 import com.guava.parcel.user.ext.ParcelDeliveryApi;
+import com.guava.parcel.user.ext.request.ChangeDestinationRequest;
+import com.guava.parcel.user.ext.request.ChangeOrderStatusRequest;
 import com.guava.parcel.user.ext.request.CreateOrderRequest;
 import com.guava.parcel.user.ext.request.SignInRequest;
 import com.guava.parcel.user.ext.response.OrderResponse;
+import com.guava.parcel.user.ext.response.OrderShortResponse;
 import com.guava.parcel.user.ext.response.SignInResponse;
+import com.guava.parcel.user.model.Page;
 import com.guava.parcel.user.model.Status;
 import com.guava.parcel.user.service.api.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +29,7 @@ import reactor.test.StepVerifier;
 import reactor.util.context.Context;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -91,22 +100,236 @@ class DefaultUserServiceTest {
 
     @Test
     void changeDestination() {
-        // TODO: 03.04.2023  
+        UUID orderId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        when(deliveryApi.getOrder(orderId))
+                .thenReturn(Mono.just(new OrderResponse(
+                                orderId,
+                                userId,
+                                UUID.randomUUID(),
+                                "The 1th Avenue",
+                                "The 2nd Avenue",
+                                Status.NEW,
+                                null,
+                                Instant.now()
+                        ))
+                );
+
+        when(deliveryApi.changeDestination(new ChangeDestinationRequest(orderId, "Baker st.")))
+                .thenReturn(Mono.just(new OrderResponse(
+                                orderId,
+                                userId,
+                                UUID.randomUUID(),
+                                "The 1th Avenue",
+                                "Baker st.",
+                                Status.NEW,
+                                null,
+                                Instant.now())
+                        )
+                );
+
+        StepVerifier.create(
+                        userService.changeDestination(new ChangeDestinationForm(orderId, "Baker st."))
+                                .contextWrite(mockAndGetSecurityContextWithPrincipal(userId))
+                )
+                .assertNext(orderView -> {
+                    assertEquals(userId, orderView.getUserId());
+                    assertEquals("Baker st.", orderView.getDestinationAddress());
+                    assertEquals("The 1th Avenue", orderView.getSourceAddress());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void changeDestinationOrderOfOtherUser() {
+        UUID orderId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        when(deliveryApi.getOrder(orderId))
+                .thenReturn(Mono.just(new OrderResponse(
+                                orderId,
+                                UUID.randomUUID(),
+                                UUID.randomUUID(),
+                                "The 1th Avenue",
+                                "The 2nd Avenue",
+                                Status.NEW,
+                                null,
+                                Instant.now()
+                        ))
+                );
+
+        when(deliveryApi.changeDestination(new ChangeDestinationRequest(orderId, "Baker st.")))
+                .thenReturn(Mono.just(new OrderResponse(
+                                orderId,
+                                userId,
+                                UUID.randomUUID(),
+                                "The 1th Avenue",
+                                "Baker st.",
+                                Status.NEW,
+                                null,
+                                Instant.now())
+                        )
+                );
+
+        StepVerifier.create(
+                        userService.changeDestination(new ChangeDestinationForm(orderId, "Baker st."))
+                                .contextWrite(mockAndGetSecurityContextWithPrincipal(userId))
+                )
+                .verifyError(EntityNotFound.class);
     }
 
     @Test
     void cancelOrder() {
-        // TODO: 03.04.2023  
+        UUID orderId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        when(deliveryApi.getOrder(orderId))
+                .thenReturn(Mono.just(new OrderResponse(
+                                orderId,
+                                userId,
+                                UUID.randomUUID(),
+                                "The 1th Avenue",
+                                "The 2nd Avenue",
+                                Status.NEW,
+                                null,
+                                Instant.now()
+                        ))
+                );
+
+        when(deliveryApi.changeOrderStatus(new ChangeOrderStatusRequest(orderId, Status.CANCELED)))
+                .thenReturn(Mono.just(new OrderResponse(
+                                orderId,
+                                userId,
+                                UUID.randomUUID(),
+                                "The 1th Avenue",
+                                "Baker st.",
+                                Status.CANCELED,
+                                null,
+                                Instant.now())
+                        )
+                );
+
+        StepVerifier.create(
+                        userService.cancelOrder(new CancelOrderForm(orderId))
+                                .contextWrite(mockAndGetSecurityContextWithPrincipal(userId))
+                )
+                .assertNext(orderView -> {
+                    assertEquals(userId, orderView.getUserId());
+                    assertEquals(Status.CANCELED, orderView.getStatus());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void cancelOrderOfOtherUser() {
+        UUID orderId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        when(deliveryApi.getOrder(orderId))
+                .thenReturn(Mono.just(new OrderResponse(
+                                orderId,
+                                UUID.randomUUID(),
+                                UUID.randomUUID(),
+                                "The 1th Avenue",
+                                "The 2nd Avenue",
+                                Status.NEW,
+                                null,
+                                Instant.now()
+                        ))
+                );
+
+        when(deliveryApi.changeOrderStatus(new ChangeOrderStatusRequest(orderId, Status.CANCELED)))
+                .thenReturn(Mono.just(new OrderResponse(
+                                orderId,
+                                UUID.randomUUID(),
+                                UUID.randomUUID(),
+                                "The 1th Avenue",
+                                "Baker st.",
+                                Status.CANCELED,
+                                null,
+                                Instant.now())
+                        )
+                );
+
+        StepVerifier.create(
+                        userService.cancelOrder(new CancelOrderForm(orderId))
+                                .contextWrite(mockAndGetSecurityContextWithPrincipal(userId))
+                )
+                .verifyError(EntityNotFound.class);
     }
 
     @Test
     void getOrder() {
-        // TODO: 03.04.2023  
+        UUID orderId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        when(deliveryApi.getOrder(orderId))
+                .thenReturn(
+                        Mono.just(new OrderResponse(
+                                orderId,
+                                userId,
+                                UUID.randomUUID(),
+                                "The 1th Avenue",
+                                "The 2nd Avenue",
+                                Status.NEW,
+                                null,
+                                Instant.now()
+                        ))
+                );
+
+        StepVerifier.create(userService.getOrder(orderId)
+                        .contextWrite(mockAndGetSecurityContextWithPrincipal(userId)))
+                .assertNext(orderView -> assertEquals(orderId, orderView.getId()))
+                .verifyComplete();
+    }
+
+    @Test
+    void getOrderOfOtherUser() {
+        UUID orderId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        when(deliveryApi.getOrder(orderId))
+                .thenReturn(
+                        Mono.just(new OrderResponse(
+                                orderId,
+                                UUID.randomUUID(),
+                                UUID.randomUUID(),
+                                "The 1th Avenue",
+                                "The 2nd Avenue",
+                                Status.NEW,
+                                null,
+                                Instant.now()
+                        ))
+                );
+
+        StepVerifier.create(userService.getOrder(orderId)
+                        .contextWrite(mockAndGetSecurityContextWithPrincipal(userId)))
+                .verifyError(EntityNotFound.class);
     }
 
     @Test
     void getOrders() {
-        // TODO: 03.04.2023  
+        UUID userId = UUID.randomUUID();
+        UUID orderId = UUID.randomUUID();
+        when(deliveryApi.getOrders(userId, 0, 20))
+                .thenReturn(
+                        Mono.just(
+                                new Page<>(
+                                        List.of(new OrderShortResponse(orderId, userId, Status.NEW, null, Instant.now())),
+                                        0,
+                                        1L,
+                                        1
+                                )
+                        )
+                );
+
+        StepVerifier.create(userService.getOrders(0, 20)
+                        .contextWrite(mockAndGetSecurityContextWithPrincipal(userId)))
+                .assertNext(page -> {
+                    assertEquals(1, page.getTotalElements());
+                    assertEquals(1, page.getNumberOfElements());
+                    assertEquals(0, page.getCurrentPage());
+                    assertEquals(1, page.getContent().size());
+                    OrderShortView orderShortView = page.getContent().get(0);
+                    assertEquals(orderId, orderShortView.getId());
+                    assertEquals(userId, orderShortView.getUserId());
+                })
+                .verifyComplete();
     }
 
 

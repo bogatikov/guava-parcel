@@ -25,7 +25,7 @@ public interface ParcelDeliveryApi {
 
     @GetMapping("order/list")
     Mono<Page<OrderShortResponse>> getOrders(
-            @RequestParam(name = "courierId", required = false) UUID courierId,
+            @RequestParam(name = "userId", required = false) UUID userId,
             @RequestParam(name = "page") Integer page,
             @RequestParam(name = "size") Integer size
     );

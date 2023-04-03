@@ -13,11 +13,13 @@ import com.guava.parcel.user.error.EntityNotFound;
 import com.guava.parcel.user.ext.AuthApi;
 import com.guava.parcel.user.ext.ParcelDeliveryApi;
 import com.guava.parcel.user.ext.request.ChangeDestinationRequest;
+import com.guava.parcel.user.ext.request.ChangeOrderStatusRequest;
 import com.guava.parcel.user.ext.request.CreateOrderRequest;
 import com.guava.parcel.user.ext.request.SignInRequest;
 import com.guava.parcel.user.ext.request.SignUpRequest;
 import com.guava.parcel.user.ext.response.OrderResponse;
 import com.guava.parcel.user.model.Page;
+import com.guava.parcel.user.model.Status;
 import com.guava.parcel.user.service.api.UserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -26,7 +28,9 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -63,24 +67,40 @@ public class DefaultUserService implements UserService {
 
     @Override
     public Mono<OrderView> changeDestination(ChangeDestinationForm changeDestinationForm) {
-        return getOrder(changeDestinationForm.orderId())
-                .flatMap(order -> deliveryApi.changeDestination(new ChangeDestinationRequest(
-                                        order.getId(),
+        return resolveUserId()
+                .zipWith(deliveryApi.getOrder(changeDestinationForm.orderId()))
+                .filter(tuple -> tuple.getT1().equals(tuple.getT2().getUserId()))
+                .flatMap(tuple -> deliveryApi.changeDestination(
+                                new ChangeDestinationRequest(
+                                        tuple.getT2().getId(),
                                         changeDestinationForm.destinationAddress()
                                 )
                         )
                 )
-                .map(orderResponse -> mapper.map(orderResponse, OrderView.class));
+                .map(orderResponse -> mapper.map(orderResponse, OrderView.class))
+                .switchIfEmpty(Mono.error(new EntityNotFound("Order for change destination not found")));
     }
 
     @Override
     public Mono<OrderView> cancelOrder(CancelOrderForm cancelOrderForm) {
-        return null;
+        return resolveUserId()
+                .zipWith(deliveryApi.getOrder(cancelOrderForm.orderId()))
+                .filter(tuple -> tuple.getT1().equals(tuple.getT2().getUserId()))
+                .flatMap(tuple -> deliveryApi.changeOrderStatus(
+                                new ChangeOrderStatusRequest(
+                                        tuple.getT2().getId(),
+                                        Status.CANCELED
+                                )
+                        )
+                )
+                .map(orderResponse -> mapper.map(orderResponse, OrderView.class))
+                .switchIfEmpty(Mono.error(new EntityNotFound("Order for change destination not found")));
     }
 
     @Override
     public Mono<OrderView> getOrder(UUID orderId) {
-        return resolveUserId().zipWith(deliveryApi.getOrder(orderId))
+        return resolveUserId()
+                .zipWith(deliveryApi.getOrder(orderId))
                 .filter(tuple -> {
                     UUID userId = tuple.getT1();
                     OrderResponse orderResponse = tuple.getT2();
@@ -92,7 +112,18 @@ public class DefaultUserService implements UserService {
 
     @Override
     public Mono<Page<OrderShortView>> getOrders(Integer page, Integer size) {
-        return null;
+        return resolveUserId()
+                .flatMap(userId -> deliveryApi.getOrders(userId, page, size))
+                .map(responsePage -> new Page<>(
+                                responsePage.getContent().stream()
+                                        .map(orderShortResponse -> mapper.map(orderShortResponse, OrderShortView.class))
+                                        .collect(Collectors.toList()),
+                                responsePage.getCurrentPage(),
+                                responsePage.getTotalElements(),
+                                responsePage.getNumberOfElements()
+                        )
+                )
+                .switchIfEmpty(Mono.just(new Page<>(List.of(), 0, 0L, 0)));
     }
 
     private Mono<UUID> resolveUserId() {
