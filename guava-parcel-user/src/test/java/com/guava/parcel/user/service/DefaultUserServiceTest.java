@@ -4,7 +4,9 @@ import com.guava.parcel.user.dto.form.CancelOrderForm;
 import com.guava.parcel.user.dto.form.ChangeDestinationForm;
 import com.guava.parcel.user.dto.form.CreateOrderForm;
 import com.guava.parcel.user.dto.form.SignInForm;
+import com.guava.parcel.user.dto.form.SignUpForm;
 import com.guava.parcel.user.dto.view.OrderShortView;
+import com.guava.parcel.user.dto.view.SignUpView;
 import com.guava.parcel.user.error.EntityNotFound;
 import com.guava.parcel.user.ext.AuthApi;
 import com.guava.parcel.user.ext.ParcelDeliveryApi;
@@ -12,9 +14,11 @@ import com.guava.parcel.user.ext.request.ChangeDestinationRequest;
 import com.guava.parcel.user.ext.request.ChangeOrderStatusRequest;
 import com.guava.parcel.user.ext.request.CreateOrderRequest;
 import com.guava.parcel.user.ext.request.SignInRequest;
+import com.guava.parcel.user.ext.request.SignUpRequest;
 import com.guava.parcel.user.ext.response.OrderResponse;
 import com.guava.parcel.user.ext.response.OrderShortResponse;
 import com.guava.parcel.user.ext.response.SignInResponse;
+import com.guava.parcel.user.ext.response.SignUpResponse;
 import com.guava.parcel.user.model.Page;
 import com.guava.parcel.user.model.Status;
 import com.guava.parcel.user.service.api.UserService;
@@ -57,7 +61,12 @@ class DefaultUserServiceTest {
 
     @Test
     void signUp() {
-        // TODO: 03.04.2023
+        when(authApi.signUp(new SignUpRequest("Doe", "John", "john@doe.com", "secret")))
+                .thenReturn(Mono.just(new SignUpResponse()));
+
+        StepVerifier.create(userService.signUp(new SignUpForm("Doe", "John", "john@doe.com", "secret")))
+                .expectNext(new SignUpView())
+                .verifyComplete();
     }
 
     @Test
